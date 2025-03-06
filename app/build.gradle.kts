@@ -44,7 +44,7 @@ android {
 
 dependencies {
 
-
+    implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     // Firebase Authentication (Sadece en güncel sürüm eklenmeli)
@@ -52,7 +52,7 @@ dependencies {
 
     // Eğer FirebaseUI kullanıyorsan, sürümü Firebase sürümüne uygun olmalı
     implementation(libs.firebase.ui.auth.v802)
-
+    implementation ("com.google.android.material:material:1.8.0")
     // Diğer Firebase bağımlılıkları
     implementation(libs.firebase.firestore.ktx.v24100)
     implementation(libs.firebase.database.ktx.v2030)

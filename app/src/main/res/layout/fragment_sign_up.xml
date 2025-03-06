@@ -8,9 +8,8 @@
     android:padding="24dp"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".ui.auth.LoginFragment"
+    tools:context=".ui.auth.SignUpFragment"
     android:background="@color/white">
-
 
 <!-- WhatsApp Logo -->
     <ImageView
@@ -27,7 +26,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="E-posta ile Giriş Yap"
+        android:text="Yeni Hesap Oluştur"
         android:textSize="18sp"
         android:textColor="@color/black"
         android:textStyle="bold"
@@ -39,7 +38,7 @@
         android:id="@+id/tvSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Giriş yapmak için e-posta adresinizi ve şifrenizi girin."
+        android:text="Lütfen e-posta adresinizi ve şifrenizi belirleyin."
         android:textSize="14sp"
         android:textColor="@color/gray"
         android:gravity="center"
@@ -51,9 +50,9 @@
         android:layout_height="wrap_content"
         android:hint="E-posta"
 
-    android:layout_marginBottom="16dp">
+        android:layout_marginBottom="16dp">
 
-    <com.google.android.material.textfield.TextInputEditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -81,31 +80,23 @@
             android:padding="12dp"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Giriş Yap Butonu -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnLogin"
+    <!-- Şifreyi Tekrar Girin -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Giriş Yap"
-        android:textSize="16sp"
-        android:backgroundTint="@color/green"
-        android:textColor="@color/white"
-        app:cornerRadius="8dp"
-        android:layout_marginTop="12dp"/>
+        android:hint="Şifreyi Tekrar Girin"
+        app:boxStrokeColor="@color/green"
+        android:layout_marginBottom="16dp">
 
-    <!-- Şifremi Unuttum -->
-    <TextView
-        android:id="@+id/tvForgotPassword"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="8dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:minHeight="48dp"
-        android:text="Şifrenizi mi unuttunuz?"
-        android:textColor="@color/black"
-        android:textSize="14sp" />
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etConfirmPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:padding="12dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Kayıt Ol Butonu -->
     <com.google.android.material.button.MaterialButton
@@ -114,10 +105,24 @@
         android:layout_height="wrap_content"
         android:text="Kayıt Ol"
         android:textSize="16sp"
-        android:backgroundTint="@color/gray"
+        android:backgroundTint="@color/green"
         android:textColor="@color/white"
         app:cornerRadius="8dp"
         android:layout_marginTop="12dp"/>
+
+    <!-- Zaten hesabın var mı? Giriş yap -->
+    <TextView
+        android:id="@+id/tvLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:minHeight="48dp"
+        android:text="Zaten bir hesabınız var mı? Giriş Yap"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
 
     <!-- Yükleme ProgressBar -->
     <ProgressBar
