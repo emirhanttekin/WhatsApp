@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.company.CreateGroupFragment"
+    android:padding="20dp">
+
+    <!-- Grup İsmi Girişi -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilGroupName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Grup Adı"
+        app:boxStrokeColor="@color/teal_200"
+        app:boxStrokeWidthFocused="2dp"
+        app:endIconMode="clear_text"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etGroupName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Grup Açıklaması Girişi -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilGroupDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Grup Açıklaması"
+        app:boxStrokeColor="@color/teal_200"
+        app:boxStrokeWidthFocused="2dp"
+        app:layout_constraintTop_toBottomOf="@id/tilGroupName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etGroupDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Grup Oluştur Butonu -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCreateGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Grup Oluştur"
+        app:cornerRadius="12dp"
+        android:backgroundTint="@color/teal_700"
+        app:layout_constraintTop_toBottomOf="@id/tilGroupDescription"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"/>
+
+    <!-- Yüklenme ProgressBar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/btnCreateGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

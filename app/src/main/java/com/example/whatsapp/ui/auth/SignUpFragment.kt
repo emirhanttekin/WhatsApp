@@ -24,23 +24,16 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
         binding.btnSignUp.setOnClickListener {
             val email = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
-            val confirmPassword = binding.etConfirmPassword.text.toString().trim()
 
-            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                Toast.makeText(requireContext(), "Lütfen tüm alanları doldurun", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            if (email.isNotEmpty() && password.isNotEmpty()) {
+                binding.progressBar.visibility = View.VISIBLE
+                viewModel.registerWithEmail(email, password)
+            } else {
+                Toast.makeText(requireContext(), "Lütfen e-posta ve şifre girin", Toast.LENGTH_SHORT).show()
             }
-
-            if (password != confirmPassword) {
-                Toast.makeText(requireContext(), "Şifreler uyuşmuyor!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            binding.progressBar.visibility = View.VISIBLE
-            viewModel.signUpWithEmail(email, password)
         }
 
-        viewModel.authState.observe(viewLifecycleOwner) { state ->
+        viewModel.otpState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is Resource.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
@@ -48,20 +41,16 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
                 }
                 is Resource.Success -> {
                     binding.progressBar.visibility = View.GONE
-                    binding.btnSignUp.isEnabled = true
-                    Toast.makeText(requireContext(), "Kayıt başarılı! Lütfen e-postanızı doğrulayın.", Toast.LENGTH_LONG).show()
-                    findNavController().navigate(R.id.action_signUpFragment_to_loginFragment)
+                    Toast.makeText(requireContext(), "Kod gönderildi! E-postanızı kontrol edin.", Toast.LENGTH_LONG).show()
+                    val action = SignUpFragmentDirections.actionSignUpFragmentToVerifyOTPFragment(binding.etEmail.text.toString())
+                    findNavController().navigate(action)
                 }
                 is Resource.Error -> {
                     binding.progressBar.visibility = View.GONE
                     binding.btnSignUp.isEnabled = true
-                    Toast.makeText(requireContext(), state.message ?: "Kayıt başarısız!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireContext(), state.message ?: "Kod gönderme başarısız!", Toast.LENGTH_LONG).show()
                 }
             }
-        }
-
-        binding.tvLogin.setOnClickListener {
-            findNavController().navigate(R.id.action_signUpFragment_to_loginFragment)
         }
     }
 }

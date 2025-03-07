@@ -40,6 +40,8 @@ class CreateCompanyFragment : Fragment(R.layout.fragment_create_company) {
                     binding.btnCreateCompany.isEnabled = true
                     Toast.makeText(requireContext(), "Şirket başarıyla oluşturuldu!", Toast.LENGTH_LONG).show()
 
+                    // Kullanıcıyı grup oluşturma ekranına yönlendir
+                    findNavController().navigate(R.id.action_createCompanyFragment_to_createGroupFragment)
                 }
                 is Resource.Error -> {
                     binding.progressBar.visibility = View.GONE

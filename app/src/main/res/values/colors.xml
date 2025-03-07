@@ -5,5 +5,7 @@
 
     <color name="gray">#757575</color>
     <color name="green">#25D366</color> <!-- WhatsApp Yeşili -->
-
+    <color name="teal_700">#00796B</color>  <!-- Koyu Teal -->
+    <color name="teal_200">#80CBC4</color>  <!-- Açık Teal -->
+    <color name="blue">#2196F3</color>  <!-- Mavi -->
 </resources>

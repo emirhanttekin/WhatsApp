@@ -1,19 +1,20 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android") // ✅ Kotlin plugin doğru yazıldı!
-    id("kotlin-kapt") // ✅ Kapt doğru kaldı!
+    id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+    id("androidx.navigation.safeargs.kotlin") // 🔥 Safe Args burada doğru!
 }
 
 android {
     namespace = "com.example.whatsapp"
-    compileSdk = 35  // Burayı güncelle
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.whatsapp"
         minSdk = 24
-        targetSdk = 34  // Burayı güncelle
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -41,32 +42,39 @@ android {
     }
 }
 
-
 dependencies {
+    val nav_version = "2.8.8"
 
+    // ✅ Firebase BOM kullanarak tüm Firebase sürümlerini uyumlu hale getiriyoruz
     implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
-    // Firebase Authentication (Sadece en güncel sürüm eklenmeli)
-    implementation(libs.google.firebase.auth.ktx)
 
-    // Eğer FirebaseUI kullanıyorsan, sürümü Firebase sürümüne uygun olmalı
+    // ✅ Firebase (Tekrar edenleri kaldırdık)
+    implementation(libs.com.google.firebase.firebase.auth.ktx)
+    implementation(libs.google.firebase.firestore.ktx)
+    implementation(libs.google.firebase.database.ktx)
+
+    // ✅ Firebase UI Auth (Opsiyonel)
     implementation(libs.firebase.ui.auth.v802)
-    implementation ("com.google.android.material:material:1.8.0")
-    // Diğer Firebase bağımlılıkları
-    implementation(libs.firebase.firestore.ktx.v24100)
-    implementation(libs.firebase.database.ktx.v2030)
-    implementation(libs.firebase.firestore.ktx)
-    implementation(libs.firebase.database.ktx)
-    implementation (libs.androidx.navigation.fragment.ktx)
-    implementation (libs.androidx.navigation.ui.ktx)
-    implementation (libs.hilt.android)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+
+    // ✅ Hilt
+    implementation(libs.hilt.android.v2511)
+    kapt(libs.hilt.android.compiler)
+
+    // ✅ Navigation
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+
+    // ✅ Material Design (Tekrar eden kaldırıldı)
+    implementation(libs.material.v180)
+
+    // ✅ AndroidX
+    implementation("androidx.core:core-ktx:1.10.1")
+    implementation(libs.androidx.appcompat.v161)
+    implementation("androidx.activity:activity-ktx:1.10.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+
+    // ✅ Testler
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

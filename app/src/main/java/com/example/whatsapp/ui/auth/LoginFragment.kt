@@ -44,19 +44,17 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 }
                 is Resource.Success -> {
                     binding.progressBar.visibility = View.GONE
-                    if (state.data?.isEmailVerified == true) {
-                        Toast.makeText(requireContext(), "Giriş başarılı!", Toast.LENGTH_LONG).show()
-                        findNavController().navigate(R.id.action_loginFragment_to_selectCompanyFragment)
-                    } else {
-                        viewModel.checkEmailVerificationAfterLogin() // 🔥 Kullanıcıyı güncelle ve tekrar kontrol et
-                    }
+                    Toast.makeText(requireContext(), "Giriş başarılı!", Toast.LENGTH_LONG).show()
+                    findNavController().navigate(R.id.action_loginFragment_to_selectCompanyFragment) // ✅ Doğrudan yönlendir!
                 }
                 is Resource.Error -> {
                     binding.progressBar.visibility = View.GONE
-                    Toast.makeText(requireContext(), state.message ?: "Hata oluştu", Toast.LENGTH_LONG).show()
+                    binding.btnLogin.isEnabled = true
+                    Toast.makeText(requireContext(), state.message ?: "Giriş başarısız!", Toast.LENGTH_LONG).show()
                 }
             }
         }
+
 
     }
 }

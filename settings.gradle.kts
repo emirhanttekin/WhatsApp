@@ -1,9 +1,15 @@
+
+
 pluginManagement {
     repositories {
         google()  // ✅ Google Repository olmalı
         mavenCentral()
         gradlePluginPortal()
     }
+    plugins {
+        id("androidx.navigation.safeargs") version "2.8.8" apply false
+    }
+
 }
 
 dependencyResolutionManagement {
