@@ -38,10 +38,12 @@ class CreateCompanyFragment : Fragment(R.layout.fragment_create_company) {
                 is Resource.Success -> {
                     binding.progressBar.visibility = View.GONE
                     binding.btnCreateCompany.isEnabled = true
+                    val companyId = state.data ?: "" // ✅ Eğer `companyId` null ise boş string ata
                     Toast.makeText(requireContext(), "Şirket başarıyla oluşturuldu!", Toast.LENGTH_LONG).show()
 
-                    // Kullanıcıyı grup oluşturma ekranına yönlendir
-                    findNavController().navigate(R.id.action_createCompanyFragment_to_createGroupFragment)
+                    val action = CreateCompanyFragmentDirections
+                        .actionCreateCompanyFragmentToCreateGroupFragment(companyId) // ✅ Null olmamasını sağladık
+                    findNavController().navigate(action)
                 }
                 is Resource.Error -> {
                     binding.progressBar.visibility = View.GONE
@@ -50,5 +52,9 @@ class CreateCompanyFragment : Fragment(R.layout.fragment_create_company) {
                 }
             }
         }
+
+
+
+
     }
 }

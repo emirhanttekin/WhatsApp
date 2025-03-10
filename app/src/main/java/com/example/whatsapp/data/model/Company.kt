@@ -4,5 +4,6 @@ data class Company(
     val id: String = "",
     val name: String = "",
     val ownerId: String = "",
+    val description : String = "",
     val createdAt: Long = System.currentTimeMillis()
 )

@@ -46,8 +46,8 @@ dependencies {
     val nav_version = "2.8.8"
 
     // ✅ Firebase BOM kullanarak tüm Firebase sürümlerini uyumlu hale getiriyoruz
-    implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
 
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     // ✅ Firebase (Tekrar edenleri kaldırdık)
     implementation(libs.com.google.firebase.firebase.auth.ktx)
     implementation(libs.google.firebase.firestore.ktx)
@@ -55,7 +55,7 @@ dependencies {
 
     // ✅ Firebase UI Auth (Opsiyonel)
     implementation(libs.firebase.ui.auth.v802)
-
+    implementation (libs.firebase.functions.ktx)
     // ✅ Hilt
     implementation(libs.hilt.android.v2511)
     kapt(libs.hilt.android.compiler)

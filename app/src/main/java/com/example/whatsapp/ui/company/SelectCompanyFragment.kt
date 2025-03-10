@@ -1,61 +1,60 @@
 package com.example.whatsapp.ui.company
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.Toast
-import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
+import android.view.ViewGroup
 import com.example.whatsapp.R
-import com.example.whatsapp.data.model.Company
-import com.example.whatsapp.databinding.FragmentSelectCompanyBinding
-import com.example.whatsapp.ui.company.adapter.CompanyAdapter
-import com.example.whatsapp.ui.company.viewmodel.CompanyViewModel
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
-class SelectCompanyFragment : Fragment(R.layout.fragment_select_company) {
+// TODO: Rename parameter arguments, choose names that match
+// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+private const val ARG_PARAM1 = "param1"
+private const val ARG_PARAM2 = "param2"
 
-    private lateinit var binding: FragmentSelectCompanyBinding
-    private val viewModel: CompanyViewModel by viewModels()
-    private lateinit var companyAdapter: CompanyAdapter
+/**
+ * A simple [Fragment] subclass.
+ * Use the [SelectCompanyFragment.newInstance] factory method to
+ * create an instance of this fragment.
+ */
+class SelectCompanyFragment : Fragment() {
+    // TODO: Rename and change types of parameters
+    private var param1: String? = null
+    private var param2: String? = null
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        binding = FragmentSelectCompanyBinding.bind(view)
-
-        setupRecyclerView()
-        observeCompanies()
-
-        // Firebase'den şirketleri çek
-        viewModel.fetchCompanies()
-
-        binding.btnCreateCompany.setOnClickListener {
-            findNavController().navigate(R.id.action_selectCompanyFragment_to_createCompanyFragment)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            param1 = it.getString(ARG_PARAM1)
+            param2 = it.getString(ARG_PARAM2)
         }
     }
 
-    private fun setupRecyclerView() {
-        companyAdapter = CompanyAdapter(emptyList()) { company ->
-            onCompanySelected(company)
-        }
-        binding.rvCompanyList.apply {
-            layoutManager = LinearLayoutManager(requireContext()) // LayoutManager ekledik
-            adapter = companyAdapter
-        }
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_select_company, container, false)
     }
 
-    private fun observeCompanies() {
-        viewModel.companies.observe(viewLifecycleOwner) { companyList ->
-            Log.d("SelectCompanyFragment", "Gelen şirket sayısı: ${companyList.size}")
-            companyAdapter.updateList(companyList)  // Güncelleme fonksiyonunu çağır
-        }
-    }
-
-    private fun onCompanySelected(company: Company) {
-        Toast.makeText(requireContext(), "${company.name} seçildi", Toast.LENGTH_SHORT).show()
-        findNavController().navigate(R.id.action_selectCompanyFragment_to_homeFragment)
+    companion object {
+        /**
+         * Use this factory method to create a new instance of
+         * this fragment using the provided parameters.
+         *
+         * @param param1 Parameter 1.
+         * @param param2 Parameter 2.
+         * @return A new instance of fragment SelectCompanyFragment.
+         */
+        // TODO: Rename and change types and number of parameters
+        @JvmStatic
+        fun newInstance(param1: String, param2: String) =
+            SelectCompanyFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_PARAM1, param1)
+                    putString(ARG_PARAM2, param2)
+                }
+            }
     }
 }

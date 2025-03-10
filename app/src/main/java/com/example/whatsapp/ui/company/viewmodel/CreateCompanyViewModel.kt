@@ -15,8 +15,8 @@ class CreateCompanyViewModel @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
-    private val _createCompanyState = MutableLiveData<Resource<Unit>>()
-    val createCompanyState: LiveData<Resource<Unit>> get() = _createCompanyState
+    private val _createCompanyState = MutableLiveData<Resource<String>>() // ✅ companyId'yi döndür
+    val createCompanyState: LiveData<Resource<String>> get() = _createCompanyState
 
     fun createCompany(companyName: String, companyDescription: String) {
         val user = auth.currentUser
@@ -25,8 +25,8 @@ class CreateCompanyViewModel @Inject constructor(
             return
         }
 
-        val companyId = firestore.collection("companies").document().id
-        val companyData = hashMapOf<String, Any>(  // 🔥 Any olarak değiştirildi
+        val companyId = firestore.collection("companies").document().id // ✅ Şirket ID oluştur
+        val companyData = hashMapOf(
             "id" to companyId,
             "name" to companyName,
             "description" to companyDescription,
@@ -38,27 +38,26 @@ class CreateCompanyViewModel @Inject constructor(
         firestore.collection("companies").document(companyId)
             .set(companyData)
             .addOnSuccessListener {
-                addUserToCompany(user.uid, companyId)
+                addUserToCompany(user.uid, companyId) // 🔥 OWNER olarak kullanıcı ekle
             }
             .addOnFailureListener { e ->
-                _createCompanyState.value = Resource.Error(e.message ?: "Şirket oluşturulamadı!")
+                _createCompanyState.value = Resource.Error("Şirket oluşturulamadı! Hata: ${e.message}")
             }
     }
 
     private fun addUserToCompany(userId: String, companyId: String) {
-        val userCompanyData = hashMapOf<String, Any>( // 🔥 Any olarak değiştirildi
+        val userCompanyData = hashMapOf(
             "companyId" to companyId,
-            "role" to "OWNER"
+            "role" to "OWNER"  // ✅ Kullanıcı otomatik OWNER olacak
         )
 
         firestore.collection("users").document(userId)
-            .update(userCompanyData)
+            .set(userCompanyData, com.google.firebase.firestore.SetOptions.merge()) // 🔥 Kullanıcıyı oluştur veya güncelle
             .addOnSuccessListener {
-                _createCompanyState.value = Resource.Success(Unit)
+                _createCompanyState.value = Resource.Success(companyId) // ✅ Şirket ID'yi Success içinde dön
             }
             .addOnFailureListener { e ->
-                _createCompanyState.value = Resource.Error("Şirket oluşturuldu ama kullanıcı eklenemedi!")
+                _createCompanyState.value = Resource.Error("Şirket oluşturuldu ama kullanıcı eklenemedi! Hata: ${e.message}")
             }
     }
-
 }

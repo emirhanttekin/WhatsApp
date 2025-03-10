@@ -15,8 +15,12 @@
             android:id="@+id/action_loginFragment_to_signUpFragment"
             app:destination="@id/signUpFragment" />
         <action
-            android:id="@+id/action_loginFragment_to_selectCompanyFragment"
-            app:destination="@id/selectCompanyFragment" />
+            android:id="@+id/action_loginFragment_to_groupListFragment"
+            app:destination="@id/groupListFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_createCompanyFragment"
+            app:destination="@id/createCompanyFragment" />
+
     </fragment>
     <fragment
         android:id="@+id/verifyOTPFragment2"
@@ -60,39 +64,84 @@
             android:id="@+id/action_signUpFragment_to_verifyOTPFragment"
             app:destination="@id/verifyOTPFragment2" />
     </fragment>
-    <fragment
-        android:id="@+id/selectCompanyFragment"
-        android:name="com.example.whatsapp.ui.company.SelectCompanyFragment"
-        android:label="fragment_select_company"
-        tools:layout="@layout/fragment_select_company" >
-        <action
-            android:id="@+id/action_selectCompanyFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
-        <action
-            android:id="@+id/action_selectCompanyFragment_to_createCompanyFragment"
-            app:destination="@id/createCompanyFragment" />
-    </fragment>
+
     <fragment
         android:id="@+id/createCompanyFragment"
         android:name="com.example.whatsapp.ui.company.CreateCompanyFragment"
         android:label="fragment_create_company"
-        tools:layout="@layout/fragment_create_company" >
+        tools:layout="@layout/fragment_create_group" >
         <action
             android:id="@+id/action_createCompanyFragment_to_createGroupFragment"
             app:destination="@id/createGroupFragment" />
     </fragment>
     <fragment
         android:id="@+id/createGroupFragment"
-        android:name="com.example.whatsapp.ui.company.CreateGroupFragment"
+        android:name="com.example.whatsapp.ui.group.CreateGroupFragment"
         android:label="fragment_create_group"
         tools:layout="@layout/fragment_create_group" >
         <argument
             android:name="companyId"
-            app:argType="string" />
+            app:argType="string"
+            android:defaultValue="" />
         <action
-            android:id="@+id/action_createGroupFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
+            android:id="@+id/action_createGroupFragment_to_groupListFragment"
+            app:destination="@id/groupListFragment" /> <!-- ✅ Varsayılan değer ekleyerek çökme önlendi -->
     </fragment>
+
+
+    <fragment
+        android:id="@+id/groupListFragment"
+        android:name="com.example.whatsapp.ui.group.GroupListFragment"
+        android:label="Gruplar"
+        tools:layout="@layout/fragment_group_list">
+        <argument
+            android:name="companyId"
+            app:argType="string"
+            android:defaultValue="" />
+        <action
+            android:id="@+id/action_groupListFragment_to_createGroupFragment"
+            app:destination="@id/createGroupFragment" />
+        <action
+            android:id="@+id/action_groupListFragment_to_chatFragment"
+            app:destination="@id/chatFragment" /> <!-- Varsayılan değer ekleyerek hata önlenir -->
+    </fragment>
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.whatsapp.ui.chat.ChatFragment"
+        android:label="Chat"
+        tools:layout="@layout/fragment_chat">
+
+        <argument
+            android:name="groupId"
+            app:argType="string"
+           />
+
+        <argument
+            android:name="groupName"
+            app:argType="string"
+          />
+
+        <action
+            android:id="@+id/action_chatFragment_to_inviteUserFragment"
+            app:destination="@id/inviteUserFragment"/>
+    </fragment>
+    <fragment
+        android:id="@+id/inviteUserFragment"
+        android:name="com.example.whatsapp.ui.chat.InviteUserFragment"
+        android:label="Davet Kullanıcı"
+        tools:layout="@layout/fragment_invite_user">
+
+        <argument
+            android:name="groupId"
+            app:argType="string"
+           />
+
+        <argument
+            android:name="groupName"
+            app:argType="string"
+          />
+    </fragment>
+
 
 
 </navigation>

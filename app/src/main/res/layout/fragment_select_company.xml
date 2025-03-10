@@ -1,47 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:orientation="vertical"
-    android:background="@color/white">
+    tools:context=".ui.company.SelectCompanyFragment">
 
-
+    <!-- TODO: Update blank fragment layout -->
     <TextView
-        android:id="@+id/tvTitle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Şirket Seç"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:gravity="center"
-        android:layout_marginBottom="16dp"/>
+        android:layout_height="match_parent"
+        android:text="@string/hello_blank_fragment" />
 
-    <!-- Şirket Listesi -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvCompanyList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scrollbars="vertical"
-        tools:listitem="@layout/item_company"
-        xmlns:tools="http://schemas.android.com/tools"/>
-
-
-
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCreateCompany"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Yeni Şirket Oluştur"
-        android:textSize="16sp"
-        android:backgroundTint="@color/green"
-        android:textColor="@color/white"
-        app:cornerRadius="8dp"
-        android:layout_marginTop="16dp"/>
-
-</LinearLayout>
+</FrameLayout>

@@ -28,29 +28,16 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 binding.progressBar.visibility = View.VISIBLE
                 viewModel.registerWithEmail(email, password)
+
+                // 🔥 Email parametresini VerifyOTPFragment'e gönder!
+                val action = SignUpFragmentDirections.actionSignUpFragmentToVerifyOTPFragment(email)
+                findNavController().navigate(action)
             } else {
                 Toast.makeText(requireContext(), "Lütfen e-posta ve şifre girin", Toast.LENGTH_SHORT).show()
             }
         }
 
-        viewModel.otpState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is Resource.Loading -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.btnSignUp.isEnabled = false
-                }
-                is Resource.Success -> {
-                    binding.progressBar.visibility = View.GONE
-                    Toast.makeText(requireContext(), "Kod gönderildi! E-postanızı kontrol edin.", Toast.LENGTH_LONG).show()
-                    val action = SignUpFragmentDirections.actionSignUpFragmentToVerifyOTPFragment(binding.etEmail.text.toString())
-                    findNavController().navigate(action)
-                }
-                is Resource.Error -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.btnSignUp.isEnabled = true
-                    Toast.makeText(requireContext(), state.message ?: "Kod gönderme başarısız!", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
+
+
     }
 }

@@ -6,6 +6,7 @@ firebaseDatabaseKtx = "21.0.0"
 firebaseDatabaseKtxVersion = "20.3.0"
 firebaseFirestoreKtx = "25.1.2"
 firebaseFirestoreKtxVersion = "24.10.0"
+firebaseFunctionsKtx = "21.1.1"
 firebaseUiAuth = "7.2.0"
 firebaseUiAuthVersion = "8.0.2"
 googleHiltAndroid = "2.51.1"
@@ -38,6 +39,7 @@ firebase-database-ktx = { module = "com.google.firebase:firebase-database-ktx", 
 firebase-database-ktx-v2030 = { module = "com.google.firebase:firebase-database-ktx", version.ref = "firebaseDatabaseKtxVersion" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 firebase-firestore-ktx-v24100 = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "firebaseFirestoreKtxVersion" }
+firebase-functions-ktx = { module = "com.google.firebase:firebase-functions-ktx", version.ref = "firebaseFunctionsKtx" }
 firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "firebaseUiAuth" }
 firebase-ui-auth-v802 = { module = "com.firebaseui:firebase-ui-auth", version.ref = "firebaseUiAuthVersion" }
 google-firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version.ref = "firebaseAuth" }

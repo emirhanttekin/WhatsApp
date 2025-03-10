@@ -3,42 +3,41 @@ package com.example.whatsapp.ui.company.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.whatsapp.data.model.Group
 import com.example.whatsapp.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import java.util.UUID
 
 @HiltViewModel
 class CreateGroupViewModel @Inject constructor(
-    private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 ) : ViewModel() {
 
-    private val _createGroupState = MutableLiveData<Resource<Unit>>()
-    val createGroupState: LiveData<Resource<Unit>> get() = _createGroupState
+    private val _createGroupState = MutableLiveData<Resource<Group>>()
+    val createGroupState: LiveData<Resource<Group>> get() = _createGroupState
 
-    fun createGroup(groupName: String, companyId: String) {
-        val user = auth.currentUser
-        if (user == null) {
-            _createGroupState.value = Resource.Error("Kullanıcı oturum açmamış!")
-            return
-        }
-
-        val groupId = firestore.collection("groups").document().id
-        val groupData = hashMapOf(
-            "id" to groupId,
-            "name" to groupName,
-            "companyId" to companyId,
-            "members" to listOf(user.uid)  // Grubu oluşturan kişi otomatik üye olur
-        )
-
+    fun createGroup(companyId: String, groupName: String) {
         _createGroupState.value = Resource.Loading()
 
+        val groupId = UUID.randomUUID().toString()
+        val userId = auth.currentUser?.uid ?: return
+
+        val group = Group(
+            id = groupId,
+            name = groupName,
+            companyId = companyId,  // 🔥 companyId artık boş değil
+            members = listOf(userId),
+            ownerId = userId
+        )
+
         firestore.collection("groups").document(groupId)
-            .set(groupData)
+            .set(group)
             .addOnSuccessListener {
-                _createGroupState.value = Resource.Success(Unit)
+                _createGroupState.value = Resource.Success(group)
             }
             .addOnFailureListener { e ->
                 _createGroupState.value = Resource.Error(e.message ?: "Grup oluşturulamadı!")

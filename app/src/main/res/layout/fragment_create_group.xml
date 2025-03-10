@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.company.CreateGroupFragment"
+    tools:context=".ui.group.CreateGroupFragment"
     android:padding="20dp">
 
     <!-- Grup İsmi Girişi -->

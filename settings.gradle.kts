@@ -8,6 +8,9 @@ pluginManagement {
     }
     plugins {
         id("androidx.navigation.safeargs") version "2.8.8" apply false
+
+
+
     }
 
 }
