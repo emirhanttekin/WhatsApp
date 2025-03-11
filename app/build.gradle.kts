@@ -46,6 +46,7 @@ dependencies {
     val nav_version = "2.8.8"
 
     // ✅ Firebase BOM kullanarak tüm Firebase sürümlerini uyumlu hale getiriyoruz
+    implementation (libs.firebase.firestore.ktx.v2481)
 
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     // ✅ Firebase (Tekrar edenleri kaldırdık)

@@ -106,35 +106,32 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private fun acceptInvitation(userEmail: String, groupId: String) {
         val auth = FirebaseAuth.getInstance()
 
-        auth.fetchSignInMethodsForEmail(userEmail)
-            .addOnSuccessListener { result ->
-                if (result.signInMethods!!.isNotEmpty()) {
-                    val user = auth.currentUser
-                    if (user != null) {
-                        val userId = user.uid // 🔥 Kullanıcının UID'sini Firebase Auth'tan al
 
-                        val groupRef = firestore.collection("groups").document(groupId)
-                        groupRef.update("members", FieldValue.arrayUnion(userId))  // ✅ Kullanıcı ID ekleniyor!
-                            .addOnSuccessListener {
-                                Toast.makeText(requireContext(), "Gruba başarıyla katıldınız!", Toast.LENGTH_SHORT).show()
-                                deleteInvitation(userEmail)
-                                findNavController().navigate(R.id.action_loginFragment_to_groupListFragment)
-                            }
-                            .addOnFailureListener { exception ->
-                                Toast.makeText(requireContext(), "Gruba katılırken hata oluştu!", Toast.LENGTH_SHORT).show()
-                                Log.e("LoginFragment", "Gruba katılırken hata oluştu", exception)
-                            }
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "Kullanıcı Authentication'da bulunamadı!", Toast.LENGTH_SHORT).show()
-                    Log.e("FirebaseAuth", "Kullanıcı Authentication'da bulunamadı: $userEmail")
+        val currentUser = auth.currentUser
+
+        if (currentUser != null && currentUser.email == userEmail) {
+
+            val userId = currentUser.uid
+
+            val groupRef = firestore.collection("groups").document(groupId)
+
+            groupRef.update("members", FieldValue.arrayUnion(userId))  // ✅ Kullanıcı ID ekleniyor!
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Gruba başarıyla katıldınız!", Toast.LENGTH_SHORT).show()
+                    deleteInvitation(userEmail)
+                    findNavController().navigate(R.id.action_loginFragment_to_groupListFragment)
                 }
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(requireContext(), "Hata oluştu!", Toast.LENGTH_SHORT).show()
-                Log.e("LoginFragment", "Kullanıcıyı alırken hata oluştu", exception)
-            }
+                .addOnFailureListener { exception ->
+                    Toast.makeText(requireContext(), "Gruba katılırken hata oluştu!", Toast.LENGTH_SHORT).show()
+//                    Log.e("LoginFragment", "Gruba katılırken hata oluştu", exception)
+                }
+        } else {
+            Toast.makeText(requireContext(), "Kullanıcı oturumu açık değil! Lütfen giriş yapın.", Toast.LENGTH_SHORT).show()
+            Log.e("FirebaseAuth", "Kullanıcı oturumu açık değil: $userEmail")
+        }
     }
+
+
 
 
 
