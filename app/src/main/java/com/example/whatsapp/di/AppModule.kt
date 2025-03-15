@@ -1,5 +1,9 @@
 package com.example.whatsapp.di
 
+import android.content.Context
+import androidx.room.Room
+import com.example.whatsapp.data.local.MessageDao
+import com.example.whatsapp.data.local.database.MessageDatabase
 import com.example.whatsapp.data.repository.AuthRepository
 import com.example.whatsapp.data.repository.AuthRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
@@ -7,6 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -32,6 +37,24 @@ object AppModule {
         return FirebaseFirestore.getInstance()
     }
 
+    @Provides
+    @Singleton
+    fun provideApplicationContext(@ApplicationContext context: Context): Context {
+        return context
+    }
 
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): MessageDatabase {
+        return Room.databaseBuilder(
+            context,
+            MessageDatabase::class.java,
+            "chat_database"
+        ).build()
+    }
 
+    @Provides
+    fun provideMessageDao(database: MessageDatabase): MessageDao {
+        return database.messageDao()
+    }
 }

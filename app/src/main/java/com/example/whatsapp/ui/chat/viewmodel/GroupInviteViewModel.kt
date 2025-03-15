@@ -22,7 +22,7 @@ class GroupInviteViewModel @Inject constructor(
     private val _userRole = MutableLiveData<String>()
     val userRole: LiveData<String> get() = _userRole
 
-    // ✅ Kullanıcının rolünü kontrol et
+    //  Kullanıcının rolünü kontrol et
     fun checkUserRole(groupId: String, userId: String) {
         firestore.collection("groups").document(groupId)
             .get()
@@ -42,7 +42,7 @@ class GroupInviteViewModel @Inject constructor(
             }
     }
 
-    // ✅ Kullanıcıya grup daveti gönder
+    // Kullanıcıya grup daveti gönder
     fun inviteUserToGroup(groupId: String, groupName: String, inviteEmail: String) {
         _inviteState.value = Resource.Loading()
 

@@ -12,6 +12,7 @@ import com.example.whatsapp.databinding.ItemMessageReceivedBinding
 import com.example.whatsapp.databinding.ItemMessageSentBinding
 import com.google.firebase.auth.FirebaseAuth
 import android.text.format.DateFormat
+import android.util.Log
 import com.google.firebase.Timestamp
 import java.util.*
 import javax.inject.Inject
@@ -34,7 +35,6 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
                 ""
             }
         }
-
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -55,6 +55,7 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val message = getItem(position)
+        Log.d("ChatAdapter", "📌 Adapter'da Güncellenen Mesaj: ${message.message}")
         if (holder is SentMessageViewHolder) {
             holder.bind(message)
         } else if (holder is ReceivedMessageViewHolder) {
@@ -66,14 +67,34 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
         private val binding = ItemMessageSentBinding.bind(itemView)
         fun bind(message: Message) {
             binding.tvMessageSent.text = message.message
-            binding.tvMessageTimeSent.text = formatTimestamp(message.timestamp)
+
+            // 📌 Gelen `timestamp` verisi **String** olarak geliyorsa, dönüştür.
+            val timestamp = try {
+                message.timestamp?.toDate()
+            } catch (e: Exception) {
+                null
+            }
+
+            binding.tvMessageTimeSent.text = timestamp?.let {
+                DateFormat.format("HH:mm", it).toString()
+            } ?: ""
         }
     }
+
     class ReceivedMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemMessageReceivedBinding.bind(itemView)
         fun bind(message: Message) {
             binding.tvMessageReceived.text = message.message
-            binding.tvMessageTimeReceived.text = formatTimestamp(message.timestamp)
+
+            val timestamp = try {
+                message.timestamp?.toDate()
+            } catch (e: Exception) {
+                null
+            }
+
+            binding.tvMessageTimeReceived.text = timestamp?.let {
+                DateFormat.format("HH:mm", it).toString()
+            } ?: ""
         }
     }
 

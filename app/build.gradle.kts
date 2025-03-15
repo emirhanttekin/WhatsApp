@@ -47,7 +47,7 @@ dependencies {
 
     // ✅ Firebase BOM kullanarak tüm Firebase sürümlerini uyumlu hale getiriyoruz
     implementation (libs.firebase.firestore.ktx.v2481)
-
+    implementation (libs.socket.socket.io.client)
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     // ✅ Firebase (Tekrar edenleri kaldırdık)
     implementation(libs.com.google.firebase.firebase.auth.ktx)
@@ -64,14 +64,16 @@ dependencies {
     // ✅ Navigation
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
-
+    implementation( libs.androidx.room.ktx)
     // ✅ Material Design (Tekrar eden kaldırıldı)
     implementation(libs.material.v180)
+    implementation (libs.androidx.room.runtime)
+    kapt (libs.androidx.room.compiler)
 
     // ✅ AndroidX
     implementation("androidx.core:core-ktx:1.10.1")
     implementation(libs.androidx.appcompat.v161)
-    implementation("androidx.activity:activity-ktx:1.10.1")
+    implementation(libs.androidx.activity.ktx)
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
     // ✅ Testler

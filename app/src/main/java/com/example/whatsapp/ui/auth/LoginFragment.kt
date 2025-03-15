@@ -79,7 +79,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     val groupId = document.getString("groupId") ?: return@addOnSuccessListener
                     val groupName = document.getString("groupName") ?: "Bilinmeyen Grup"
 
-                    // 🔥 HATA ALMAMAK İÇİN ACTIVITY DURUMUNU KONTROL ET!
+
                     val activity = requireActivity()
                     if (activity is Activity && !activity.isFinishing) {
                         AlertDialog.Builder(requireContext())
