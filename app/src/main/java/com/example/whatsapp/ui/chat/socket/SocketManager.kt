@@ -4,7 +4,7 @@ import io.socket.client.Socket
 import org.json.JSONObject
 import io.socket.client.IO
 
-object SocketManager {
+object  SocketManager {
     private const val SERVER_URL = "https://chat-server-node-30af47d1d8c8.herokuapp.com/"
 
 

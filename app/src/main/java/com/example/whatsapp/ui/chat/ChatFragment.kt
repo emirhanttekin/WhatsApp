@@ -23,7 +23,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private lateinit var binding: FragmentChatBinding
     private val viewModel: ChatViewModel by viewModels()
     private val args: ChatFragmentArgs by navArgs()
-
+    private var isChatScreenVisible: Boolean = false
     @Inject
     lateinit var chatAdapter: ChatAdapter
 
@@ -41,29 +41,24 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         binding.tvGroupName.text = groupName
         setupRecyclerView()
         checkIfUserIsOwner(groupId)
+
         binding.btnInvite.setOnClickListener {
             val action = ChatFragmentDirections.actionChatFragmentToInviteUserFragment(groupId, groupName)
             findNavController().navigate(action)
         }
 
 
-        viewModel.listenForFirestoreMessages(groupId)
-
+        // 🔥 Socket bağlantısını kur
         viewModel.connectSocket()
 
-
+        // 🔥 Kullanıcıyı gruba dahil et
         auth.currentUser?.uid?.let { userId ->
             viewModel.joinGroup(userId, groupId)
         }
-        binding.tvGroupName.setOnClickListener {
-            val action = ChatFragmentDirections.actionChatFragmentToGroupDetailsFragment(
-                groupId = groupId,
-                groupName = groupName
-            )
-            findNavController().navigate(action)
-        }
 
-        viewModel.loadMessagesFromRoom(groupId)
+
+
+        // 🔥 LiveData Observer (Mesajları Güncelle)
         viewModel.messagesLiveData.observe(viewLifecycleOwner) { messages ->
             Log.d("ChatFragment", "📨 RecyclerView Güncelleniyor: ${messages.size} mesaj var.")
 
@@ -78,31 +73,11 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             }
         }
 
-
         binding.btnSend.setOnClickListener {
             sendMessage(groupId)
         }
-        binding.tvGroupName.setOnClickListener {
-            val action = ChatFragmentDirections.actionChatFragmentToGroupDetailsFragment(groupId, groupName)
-            findNavController().navigate(action)
-        }
-        binding.tvGroupName.setOnClickListener {
-            val action = ChatFragmentDirections.actionChatFragmentToGroupDetailsFragment(
-                groupName = groupName, // Burada değişiklik yapıyoruz!
-                groupId = groupId
-            )
-            findNavController().navigate(action)
-
-            viewModel.loadMessagesFromRoom(groupId)
-
-
-        }
-
-        binding.btnInvite.setOnClickListener {
-            val action = ChatFragmentDirections.actionChatFragmentToInviteUserFragment(groupId, groupName)
-            findNavController().navigate(action)
-        }
     }
+
 
 
     private fun checkIfUserIsOwner(groupId: String) {
@@ -155,8 +130,19 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         super.onResume()
         val groupId = args.groupId
         viewModel.connectSocket()
-        viewModel.loadMessagesFromRoom(groupId) // 🔥 Fragment açıldığında mesajları tekrar yükle
-        viewModel.connectSocket() // 🔥 Bağlantıyı tekrar sağla
+        viewModel.loadMessagesFromRoom(groupId)
+
+
+        // 🔥 Kullanıcı sohbet ekranında, bildirim göstermeye gerek yok
+        viewModel.isChatScreenVisible = true
     }
+
+    override fun onPause() {
+        super.onPause()
+
+        // 🔥 Kullanıcı chat ekranından çıktığında bildirimler aktif hale gelsin
+        viewModel.isChatScreenVisible = false
+    }
+
 
 }

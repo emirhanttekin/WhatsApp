@@ -28,7 +28,7 @@ class ChatViewModel @Inject constructor(
 
     private val _messagesLiveData = MutableLiveData<List<Message>>()
     val messagesLiveData: LiveData<List<Message>> get() = _messagesLiveData
-
+    var isChatScreenVisible = false
     private val messagesList = mutableListOf<Message>()
     private val firestore = FirebaseFirestore.getInstance()
     private val messagesCollection = firestore.collection("messages")
@@ -80,28 +80,35 @@ class ChatViewModel @Inject constructor(
 
                 // 🔥 Socket ile gönder
                 SocketManager.sendMessage(groupId, messageText, senderId, senderName, senderProfileImageUrl)
+
+                // 🔥 Eğer chat ekranı açık değilse bildirim gönder
+                if (!isChatScreenVisible && isUserLoggedIn()) {
+                    sendNotification(message)
+                }
             }
+
         }
     }
 
 
 
-    private fun listenForMessages() {
+
+    fun listenForMessages() {
         Log.d("ChatViewModel", "⏳ Yeni mesaj dinleniyor...")
 
         SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl ->
             try {
                 val timestamp = Timestamp.now()
-                val messageId = "${groupId}_${timestamp.seconds}" // 🔥 Socket’ten gelen mesajın ID’si
+                val messageId = "${groupId}_${timestamp.seconds}"
 
-                // 🔥 Mesaj zaten varsa tekrar eklemeyi önle
+                // 🔥 Eğer mesaj zaten varsa tekrar eklemeyi önle
                 if (messagesList.any { it.id == messageId }) {
-                    Log.w("ChatViewModel", "⚠ Socket'ten gelen mesaj zaten var, tekrar eklenmeyecek!")
+                    Log.w("ChatViewModel", "⚠ Mesaj zaten var, tekrar eklenmeyecek!")
                     return@setOnMessageReceivedListener
                 }
 
                 val message = Message(
-                    id = messageId, // 🔥 ID kontrolü yaptık
+                    id = messageId,
                     senderId = senderId,
                     senderProfileImageUrl = senderProfileImageUrl,
                     groupId = groupId,
@@ -110,9 +117,18 @@ class ChatViewModel @Inject constructor(
                 )
 
                 saveMessageToLocal(message)
-
                 messagesList.add(message)
                 _messagesLiveData.postValue(ArrayList(messagesList))
+
+                // 🔥 Eğer chat ekranı açık değilse bildirim gönder
+                if (!isChatScreenVisible && isUserLoggedIn()) {
+                    sendNotification(message)
+                }
+
+                // 🔥 Eğer chat ekranı açık değilse bildirim gönder
+                if (!isChatScreenVisible && isUserLoggedIn()) {
+                    sendNotification(message)
+                }
 
                 Log.d("ChatViewModel", "✅ Yeni mesaj eklendi: $text")
 
@@ -124,32 +140,39 @@ class ChatViewModel @Inject constructor(
 
 
 
+    fun loadMessagesFromFirestore(groupId: String) {
+        Log.d("ChatViewModel", "📥 Firestore'dan mesajları çekiyoruz...")
 
-    private fun getSenderAndGroupInfo(senderId: String, groupId: String, message: String) {
-        firestore.collection("users").document(senderId).get()
-            .addOnSuccessListener { userDoc ->
-                if (userDoc.exists()) {
-                    val senderName = userDoc.getString("name") ?: "Bilinmeyen"
+        firestore.collection("messages")
+            .whereEqualTo("groupId", groupId)
+            .orderBy("timestamp")
+            .get()
+            .addOnSuccessListener { documents ->
+                val messages = mutableListOf<Message>()
+                for (document in documents) {
+                    val message = document.toObject(Message::class.java)
 
-                    firestore.collection("groups").document(groupId).get()
-                        .addOnSuccessListener { groupDoc ->
-                            if (groupDoc.exists()) {
-                                val groupName = groupDoc.getString("groupName") ?: "Bilinmeyen Grup"
+                    // 🔥 Eğer mesaj zaten varsa tekrar ekleme!
+                    if (messagesList.any { it.id == message.id }) {
+                        continue
+                    }
 
-                                // **Eğer uygulama açık değilse ve kullanıcı login durumundaysa, bildirim göster**
-                                if (!isAppInForeground() && isUserLoggedIn()) {
-                                    NotificationHelper.showNotification(
-                                        getApplication<Application>().applicationContext, // ✅ HATA DÜZELTİLDİ
-                                        groupName,
-                                        senderName,
-                                        message
-                                    )
-                                }
-                            }
-                        }
+                    messages.add(message)
                 }
+
+                // 🔥 Listeye ekleyip UI'ı güncelle
+                messagesList.addAll(messages)
+                _messagesLiveData.postValue(ArrayList(messagesList))
+
+                Log.d("ChatViewModel", "✅ Firestore'dan ${messages.size} mesaj yüklendi.")
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChatViewModel", "❌ Firestore mesajlarını yüklerken hata: ${e.message}")
             }
     }
+
+
+
 
     private fun isUserLoggedIn(): Boolean {
         return auth.currentUser != null
@@ -203,38 +226,32 @@ class ChatViewModel @Inject constructor(
                 }
             }
     }
-     fun listenForFirestoreMessages(groupId: String) {
-        firestore.collection("messages")
-            .whereEqualTo("groupId", groupId)
-            .orderBy("timestamp") // 🔥 Zaman sırasına göre sırala
-            .addSnapshotListener { snapshots, error ->
-                if (error != null) {
-                    Log.e("ChatViewModel", "Firestore mesaj dinleme hatası: ${error.message}")
-                    return@addSnapshotListener
-                }
 
-                if (snapshots != null) {
-                    for (doc in snapshots.documentChanges) {
-                        val message = doc.document.toObject(Message::class.java)
 
-                        // 🔥 Eğer mesaj Room veritabanında yoksa ekle
-                        viewModelScope.launch(Dispatchers.IO) {
-                            val existingMessage = messageDao.getMessageById(message.id)
-                            if (existingMessage == null) {
-                                messageDao.insertMessage(message)
-                                messagesList.add(message)
-                                _messagesLiveData.postValue(ArrayList(messagesList))
-                            }
-                        }
+    private fun sendNotification(message: Message) {
+        val context = getApplication<Application>().applicationContext
 
-                        // 🔥 Kullanıcı sohbet ekranında değilse bildirim gönder
-                        if (!isAppInForeground()) {
-                            getSenderAndGroupInfo(message.senderId, groupId, message.message)
-                        }
-                    }
-                }
+        // Grup adını almak için Firestore'dan veriyi çekiyoruz
+        firestore.collection("groups").document(message.groupId)
+            .get()
+            .addOnSuccessListener { document ->
+                val groupName = document.getString("groupName") ?: "Bilinmeyen Grup"
+
+                NotificationHelper.showNotification(
+                    context,
+                    groupName = groupName,
+                    senderName = message.senderName,
+                    message = message.message
+                )
+
+                Log.d("ChatViewModel", "🔔 Bildirim gönderildi: ${message.message}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChatViewModel", "❌ Bildirim için grup adı alınamadı: ${e.message}")
             }
     }
+
+
 
 
     private fun saveMessageToLocal(message: Message) {
