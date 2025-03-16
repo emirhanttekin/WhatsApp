@@ -17,10 +17,13 @@ object SocketManager {
 
             socket?.on(Socket.EVENT_CONNECT) {
                 Log.d("Socket", "✅ Socket.IO başarıyla bağlandı!")
-                setOnMessageReceivedListener { groupId, senderId, text, timestamp ->
-                    Log.d("Socket", "📩 Yeni Mesaj Geldi -> Grup: $groupId, Gönderen: $senderId, Mesaj: $text , Time : $timestamp")
+
+                // 📌 setOnMessageReceivedListener DOĞRU ŞEKİLDE ÇAĞRILIYOR
+                setOnMessageReceivedListener { groupId, senderId, text,  senderProfileImageUrl ->
+                    Log.d("Socket", "📩 Yeni Mesaj Geldi -> Grup: $groupId, Gönderen: $senderId, Mesaj: $text, Time: , Resim: $senderProfileImageUrl")
                 }
             }
+
 
             socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
                 Log.e("Socket", "❌ Socket bağlantı hatası: ${args[0]}")
@@ -46,15 +49,19 @@ object SocketManager {
         Log.d("Socket", "✅ Kullanıcı gruba katıldı: Kullanıcı ID = $userId, Grup ID = $groupId")
     }
 
-    fun sendMessage(groupId:String, message : String , senderId : String)  {
+    fun sendMessage(groupId: String, message: String, senderId: String, senderName: String, senderProfileImageUrl: String) {
         val data = JSONObject()
         data.put("groupId", groupId)
         data.put("message", message)
         data.put("senderId", senderId)
-        socket?.emit("sendMessage", data)
-        Log.d("Socket", "✅ Yeni mesaj gönderildi: Grup = $groupId, Mesaj = $message, Gönderen = $senderId")
+        data.put("senderName", senderName)  // ✅ Kullanıcı adı gönderiliyor
+        data.put("senderProfileImageUrl", senderProfileImageUrl)  // ✅ PROFİL FOTOĞRAFI EKLENDİ
 
+        socket?.emit("sendMessage", data)
+
+        Log.d("Socket", "✅ Yeni mesaj gönderildi: Grup = $groupId, Mesaj = $message, Gönderen = $senderId, Resim = $senderProfileImageUrl")
     }
+
 
 
     fun setOnMessageReceivedListener(onMessageReceived: (String, String, String, String) -> Unit) {
@@ -69,11 +76,11 @@ object SocketManager {
                     return@on
                 }
 
-                // ✅ **Gelen veriyi JSON olarak işleyelim**
+                // ✅ **Gelen veriyi JSON olarak işle**
                 val messageObj = try {
                     args[0] as? JSONObject ?: JSONObject(args[0].toString()) // **JSON parse et**
                 } catch (e: Exception) {
-                    Log.e("Socket", "❌ receiveMessage eventinde JSON parse hatası: ${e.message}")
+                    Log.e("Socket", "❌ JSON parse hatası: ${e.message}")
                     return@on
                 }
 
@@ -81,23 +88,25 @@ object SocketManager {
                 val groupId = messageObj.optString("groupId", "")
                 val text = messageObj.optString("message", "")
                 val senderId = messageObj.optString("senderId", "")
+                val senderProfileImageUrl = messageObj.optString("senderProfileImageUrl", "")
                 val timestamp = messageObj.optString("timestamp", "")
 
-                if (groupId.isEmpty() || text.isEmpty() || senderId.isEmpty() || timestamp.isEmpty()) {
-                    Log.e("Socket", "❌ receiveMessage eventinde eksik veri var!")
+                if (groupId.isEmpty() || text.isEmpty() || senderId.isEmpty()) {
+                    Log.e("Socket", "❌ Eksik veri var!")
                     return@on
                 }
 
-                Log.d("Socket", "📥 Mesaj Alındı: Grup = $groupId, Mesaj = $text, Gönderen = $senderId, Zaman = $timestamp")
+                Log.d("Socket", "📥 Mesaj Alındı: Grup = $groupId, Mesaj = $text, Gönderen = $senderId, Resim: $senderProfileImageUrl")
 
                 // **Listener'ı tetikle**
-                onMessageReceived(groupId, senderId, text, timestamp)
+                onMessageReceived(groupId, senderId, text, senderProfileImageUrl)
 
             } catch (e: Exception) {
                 Log.e("Socket", "❌ receiveMessage eventinde hata: ${e.message}")
             }
         }
     }
+
 
 
 

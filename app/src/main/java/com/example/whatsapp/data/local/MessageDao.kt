@@ -16,4 +16,11 @@ interface MessageDao {
 
     @Query("DELETE FROM messages WHERE timestamp < :cutoffTime")
     suspend fun deleteOldMessages(cutoffTime: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMessages(messages: List<Message>)  // 🔥 **Toplu mesaj ekleme**
+
+    @Query("SELECT * FROM messages WHERE id = :messageId LIMIT 1")
+    suspend fun getMessageById(messageId: String): Message?
+
 }

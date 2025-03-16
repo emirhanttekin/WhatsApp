@@ -43,7 +43,7 @@ class VerifyOTPFragment : Fragment(R.layout.fragment_verify_o_t_p) {
                 is Resource.Success -> {
                     Toast.makeText(requireContext(), "Doğrulama başarılı!", Toast.LENGTH_SHORT)
                         .show()
-                    findNavController().navigate(R.id.action_verifyOTPFragment2_to_createCompanyFragment)
+                    findNavController().navigate(R.id.action_verifyOTPFragment2_to_profileSetupFragment2)
                 }
 
                 is Resource.Error -> {

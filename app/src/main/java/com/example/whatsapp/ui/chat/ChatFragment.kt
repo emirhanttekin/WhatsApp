@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.whatsapp.R
@@ -12,6 +13,7 @@ import com.example.whatsapp.databinding.FragmentChatBinding
 import com.example.whatsapp.ui.chat.adapter.ChatAdapter
 import com.example.whatsapp.ui.chat.viewmodel.ChatViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -33,13 +35,19 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
         val groupId = args.groupId
         val groupName = args.groupName
+
+        Log.d("ChatFragment", "✅ ChatFragment → Group ID: $groupId")
+
         binding.tvGroupName.text = groupName
-
         setupRecyclerView()
+        checkIfUserIsOwner(groupId)
+        binding.btnInvite.setOnClickListener {
+            val action = ChatFragmentDirections.actionChatFragmentToInviteUserFragment(groupId, groupName)
+            findNavController().navigate(action)
+        }
 
 
-        viewModel.loadMessagesFromRoom(groupId)
-
+        viewModel.listenForFirestoreMessages(groupId)
 
         viewModel.connectSocket()
 
@@ -47,8 +55,15 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         auth.currentUser?.uid?.let { userId ->
             viewModel.joinGroup(userId, groupId)
         }
+        binding.tvGroupName.setOnClickListener {
+            val action = ChatFragmentDirections.actionChatFragmentToGroupDetailsFragment(
+                groupId = groupId,
+                groupName = groupName
+            )
+            findNavController().navigate(action)
+        }
 
-
+        viewModel.loadMessagesFromRoom(groupId)
         viewModel.messagesLiveData.observe(viewLifecycleOwner) { messages ->
             Log.d("ChatFragment", "📨 RecyclerView Güncelleniyor: ${messages.size} mesaj var.")
 
@@ -58,15 +73,60 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                         binding.rvMessages.smoothScrollToPosition(messages.size - 1)
                     }
                 }, 200)
+
+                chatAdapter.notifyDataSetChanged()
             }
         }
+
 
         binding.btnSend.setOnClickListener {
             sendMessage(groupId)
         }
+        binding.tvGroupName.setOnClickListener {
+            val action = ChatFragmentDirections.actionChatFragmentToGroupDetailsFragment(groupId, groupName)
+            findNavController().navigate(action)
+        }
+        binding.tvGroupName.setOnClickListener {
+            val action = ChatFragmentDirections.actionChatFragmentToGroupDetailsFragment(
+                groupName = groupName, // Burada değişiklik yapıyoruz!
+                groupId = groupId
+            )
+            findNavController().navigate(action)
+
+            viewModel.loadMessagesFromRoom(groupId)
+
+
+        }
+
+        binding.btnInvite.setOnClickListener {
+            val action = ChatFragmentDirections.actionChatFragmentToInviteUserFragment(groupId, groupName)
+            findNavController().navigate(action)
+        }
     }
 
 
+    private fun checkIfUserIsOwner(groupId: String) {
+        val currentUserId = auth.currentUser?.uid ?: return
+
+        FirebaseFirestore.getInstance().collection("groups").document(groupId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val ownerId = document.getString("ownerId") ?: ""
+                    Log.d("ChatFragment", "👑 Grup Sahibi ID: $ownerId")
+
+                    // Eğer giriş yapan kullanıcı grup sahibi ise butonu göster
+                    if (currentUserId == ownerId) {
+                        binding.btnInvite.visibility = View.VISIBLE
+                    } else {
+                        binding.btnInvite.visibility = View.GONE
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChatFragment", "❌ Grup sahibi bilgisi alınamadı: ${e.message}")
+            }
+    }
     private fun setupRecyclerView() {
         binding.rvMessages.apply {
             adapter = chatAdapter
@@ -90,4 +150,13 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         super.onDestroyView()
         viewModel.disconnectSocket()
     }
+
+    override fun onResume() {
+        super.onResume()
+        val groupId = args.groupId
+        viewModel.connectSocket()
+        viewModel.loadMessagesFromRoom(groupId) // 🔥 Fragment açıldığında mesajları tekrar yükle
+        viewModel.connectSocket() // 🔥 Bağlantıyı tekrar sağla
+    }
+
 }

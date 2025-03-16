@@ -9,8 +9,8 @@ import com.example.whatsapp.data.local.MessageDao
 import com.example.whatsapp.data.local.TimestampConverter
 import com.example.whatsapp.data.model.Message
 
-@Database(entities = [Message::class], version = 1, exportSchema = false)
-@TypeConverters(TimestampConverter::class) // 🔥 TypeConverter burada da olmalı!
+@Database(entities = [Message::class], version = 2)
+@TypeConverters(TimestampConverter::class)
 abstract class MessageDatabase : RoomDatabase() {
     abstract fun messageDao(): MessageDao
 
@@ -25,7 +25,7 @@ abstract class MessageDatabase : RoomDatabase() {
                     MessageDatabase::class.java,
                     "chat_database"
                 )
-                    .fallbackToDestructiveMigration() // 🔥 Veritabanını sıfırla (önemli!)
+
                     .build()
                 INSTANCE = instance
                 instance

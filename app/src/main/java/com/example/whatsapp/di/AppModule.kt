@@ -49,9 +49,12 @@ object AppModule {
         return Room.databaseBuilder(
             context,
             MessageDatabase::class.java,
-            "chat_database"
-        ).build()
+            "whatsapp_database"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
+
 
     @Provides
     fun provideMessageDao(database: MessageDatabase): MessageDao {

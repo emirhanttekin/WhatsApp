@@ -32,6 +32,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         auth = FirebaseAuth.getInstance()
 
+        // Kullanıcı oturumu açık mı kontrol et
+        checkUserSession()
+
         binding.btnLogin.setOnClickListener {
             val email = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
@@ -49,14 +52,12 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         viewModel.authState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is Resource.Loading -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                }
+                is Resource.Loading -> binding.progressBar.visibility = View.VISIBLE
                 is Resource.Success -> {
                     binding.progressBar.visibility = View.GONE
                     val user = state.data
                     if (user != null) {
-                        saveUserToFirestore(user.uid, user.email!!)  // 🔥 Kullanıcı Firestore'a kaydediliyor!
+                        saveUserToFirestore(user.uid, user.email!!)
                         checkForGroupInvitations(user.email!!)
                     }
                 }
@@ -66,40 +67,102 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 }
             }
         }
-
-
     }
 
+    private fun checkUserSession() {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            // 🔥 Kullanıcının Firestore'daki bilgilerini kontrol et
+            firestore.collection("users").document(currentUser.uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val name = document.getString("name")
+                        val surname = document.getString("surname")
+                        val profileImageUrl = document.getString("profileImageUrl")
+
+                        // 🔥 Eğer profil eksikse, ProfileSetupFragment'a yönlendir
+                        if (name.isNullOrEmpty() || surname.isNullOrEmpty() || profileImageUrl.isNullOrEmpty()) {
+                            findNavController().navigate(R.id.action_loginFragment_to_profileSetupFragment2)
+                        } else {
+                            // 🔥 Kullanıcının profili tamamsa, grup listesi sayfasına yönlendir
+                            findNavController().navigate(R.id.action_loginFragment_to_groupListFragment)
+                        }
+                    } else {
+                        // Kullanıcı kaydı yoksa, profil setup sayfasına yönlendir
+                        findNavController().navigate(R.id.action_loginFragment_to_profileSetupFragment2)
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("LoginFragment", "Kullanıcı bilgileri alınırken hata oluştu", exception)
+                    Toast.makeText(
+                        requireContext(),
+                        "Kullanıcı bilgileri alınamadı!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+        }
+    }
+
+
+
     private fun checkForGroupInvitations(userEmail: String) {
-        firestore.collection("groupInvitations")
-            .document(userEmail)
+        val userId = auth.currentUser?.uid ?: return
+
+        // 🔥 Kullanıcının Firestore'daki bilgilerini kontrol et
+        firestore.collection("users").document(userId)
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val groupId = document.getString("groupId") ?: return@addOnSuccessListener
-                    val groupName = document.getString("groupName") ?: "Bilinmeyen Grup"
+                    val name = document.getString("name")
+                    val surname = document.getString("surname")
+                    val profileImageUrl = document.getString("profileImageUrl")
 
-
-                    val activity = requireActivity()
-                    if (activity is Activity && !activity.isFinishing) {
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("Grup Daveti")
-                            .setMessage("$groupName adlı gruba katılmak istiyor musunuz?")
-                            .setPositiveButton("Kabul Et") { _, _ ->
-                                acceptInvitation(userEmail, groupId)
-                            }
-                            .setNegativeButton("Reddet") { _, _ ->
-                                declineInvitation(userEmail)
-                            }
-                            .show()
+                    // 🔥 Eğer profil eksikse, ProfileSetupFragment'a yönlendir
+                    if (name.isNullOrEmpty() || surname.isNullOrEmpty() || profileImageUrl.isNullOrEmpty()) {
+                        findNavController().navigate(R.id.action_loginFragment_to_profileSetupFragment2)
+                        return@addOnSuccessListener
                     }
+
+                    // 🔥 Kullanıcı profili TAMAMSA grup davetlerini kontrol et
+                    firestore.collection("groupInvitations")
+                        .document(userEmail)
+                        .get()
+                        .addOnSuccessListener { inviteDocument ->
+                            if (inviteDocument.exists()) {
+                                val groupId = inviteDocument.getString("groupId") ?: return@addOnSuccessListener
+                                val groupName = inviteDocument.getString("groupName") ?: "Bilinmeyen Grup"
+
+                                val activity = requireActivity()
+                                if (activity is Activity && !activity.isFinishing) {
+                                    AlertDialog.Builder(requireContext())
+                                        .setTitle("Grup Daveti")
+                                        .setMessage("$groupName adlı gruba katılmak istiyor musunuz?")
+                                        .setPositiveButton("Kabul Et") { _, _ ->
+                                            acceptInvitation(userEmail, groupId)
+                                        }
+                                        .setNegativeButton("Reddet") { _, _ ->
+                                            declineInvitation(userEmail)
+                                        }
+                                        .show()
+                                }
+                            } else {
+                                // 🔥 Kullanıcının grubu yoksa, direkt grup listesine yönlendir
+                                findNavController().navigate(R.id.action_loginFragment_to_groupListFragment)
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("LoginFragment", "Grup davetlerini kontrol ederken hata oluştu", exception)
+                            Toast.makeText(requireContext(), "Davetler kontrol edilirken hata oluştu", Toast.LENGTH_SHORT).show()
+                        }
                 } else {
-                    findNavController().navigate(R.id.action_loginFragment_to_groupListFragment)
+                    // Kullanıcı kaydı yoksa, yine profil setup sayfasına yönlendir
+                    findNavController().navigate(R.id.action_loginFragment_to_profileSetupFragment2)
                 }
             }
             .addOnFailureListener { exception ->
-                Log.e("LoginFragment", "Davetleri kontrol ederken hata oluştu", exception)
-                Toast.makeText(requireContext(), "Davetler kontrol edilirken hata oluştu", Toast.LENGTH_SHORT).show()
+                Log.e("LoginFragment", "Kullanıcı bilgileri alınırken hata oluştu", exception)
+                Toast.makeText(requireContext(), "Kullanıcı bilgileri alınamadı!", Toast.LENGTH_SHORT).show()
             }
     }
 

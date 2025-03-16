@@ -12,6 +12,8 @@ data class Message(
     @PrimaryKey val id: String = "",  // ✅ PrimaryKey ekledik
     val senderId: String = "",
     val groupId: String = "",
+    val senderName: String = "",
+    val senderProfileImageUrl: String = "",
     val message: String = "",
     val timestamp: Timestamp = Timestamp.now() // 🔥 Firestore Timestamp
 )

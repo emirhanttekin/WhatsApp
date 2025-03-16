@@ -20,6 +20,9 @@
         <action
             android:id="@+id/action_loginFragment_to_createCompanyFragment"
             app:destination="@id/createCompanyFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_profileSetupFragment2"
+            app:destination="@id/profileSetupFragment2" />
 
     </fragment>
     <fragment
@@ -36,6 +39,9 @@
         <argument
             android:name="email"
             app:argType="string" />
+        <action
+            android:id="@+id/action_verifyOTPFragment2_to_profileSetupFragment2"
+            app:destination="@id/profileSetupFragment2" />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
@@ -103,7 +109,10 @@
             app:destination="@id/createGroupFragment" />
         <action
             android:id="@+id/action_groupListFragment_to_chatFragment"
-            app:destination="@id/chatFragment" /> <!-- Varsayılan değer ekleyerek hata önlenir -->
+            app:destination="@id/chatFragment" />
+        <action
+            android:id="@+id/action_groupListFragment_to_loginFragment"
+            app:destination="@id/loginFragment" /> <!-- Varsayılan değer ekleyerek hata önlenir -->
     </fragment>
     <fragment
         android:id="@+id/chatFragment"
@@ -115,7 +124,10 @@
             android:name="groupId"
             app:argType="string"
            />
-
+        <argument
+            android:name="groupInfo"
+            app:argType="string"
+            android:defaultValue="" />
         <argument
             android:name="groupName"
             app:argType="string"
@@ -124,6 +136,9 @@
         <action
             android:id="@+id/action_chatFragment_to_inviteUserFragment"
             app:destination="@id/inviteUserFragment"/>
+        <action
+            android:id="@+id/action_chatFragment_to_groupDetailsFragment"
+            app:destination="@id/groupDetailsFragment" />
     </fragment>
     <fragment
         android:id="@+id/inviteUserFragment"
@@ -140,6 +155,32 @@
             android:name="groupName"
             app:argType="string"
           />
+    </fragment>
+    <fragment
+        android:id="@+id/profileSetupFragment2"
+        android:name="com.example.whatsapp.ui.auth.ProfileSetupFragment"
+        android:label="fragment_profile_setup"
+        tools:layout="@layout/fragment_profile_setup" >
+        <action
+            android:id="@+id/action_profileSetupFragment2_to_createCompanyFragment"
+            app:destination="@id/createCompanyFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/groupDetailsFragment"
+        android:name="com.example.whatsapp.ui.group.GroupDetailsFragment"
+        android:label="Group Details">
+
+        <argument
+            android:name="groupId"
+            app:argType="string"
+            android:defaultValue=""/>
+
+        <argument
+            android:name="groupName"
+            app:argType="string"/>
+        <action
+            android:id="@+id/action_groupDetailsFragment_to_inviteUserFragment"
+            app:destination="@id/inviteUserFragment" />
     </fragment>
 
 

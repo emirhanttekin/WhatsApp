@@ -18,10 +18,12 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()  // Google Maven deposu eklenmeli
+        google()
         mavenCentral()
+        maven("https://jitpack.io") // JitPack'in doğru eklenmesi
     }
 }
+
 
 
 rootProject.name = "WhatsApp"

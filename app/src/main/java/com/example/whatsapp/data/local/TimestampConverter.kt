@@ -6,11 +6,11 @@ import com.google.firebase.Timestamp
 class TimestampConverter {
     @TypeConverter
     fun fromTimestamp(timestamp: Timestamp?): Long? {
-        return timestamp?.seconds // 🔥 Timestamp’i Long’a çeviriyoruz
+        return timestamp?.seconds
     }
 
     @TypeConverter
     fun toTimestamp(seconds: Long?): Timestamp? {
-        return seconds?.let { Timestamp(it, 0) } // 🔥 Long’dan Timestamp’e çeviriyoruz
+        return seconds?.let { Timestamp(it, 0) }
     }
 }

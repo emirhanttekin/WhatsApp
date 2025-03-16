@@ -75,22 +75,39 @@ class AuthViewModel @Inject constructor(
             }
     }
 
-    /**
-     * 🔹 Firebase'de kullanıcı oluşturur.
-     */
+
     private fun createUserWithEmail(email: String, password: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    _verifyState.value = Resource.Success(true)
-                    _authState.value = Resource.Success(auth.currentUser)
+                    val user = auth.currentUser
+                    if (user != null) {
+                        val userData = hashMapOf(
+                            "email" to email,
+                            "role" to "USER",  // Kullanıcı rolü
+                            "companyId" to "",  // Şirket ID boş olacak
+                            "name" to "",
+                            "surname" to "",
+                            "profileImageUrl" to ""
+                        )
+
+                        firestore.collection("users").document(user.uid)
+                            .set(userData)
+                            .addOnSuccessListener {
+                                _verifyState.value = Resource.Success(true)
+                                _authState.value = Resource.Success(user)
+                            }
+                            .addOnFailureListener { e ->
+                                _verifyState.value =
+                                    Resource.Error("Kullanıcı verileri kaydedilemedi: ${e.message}")
+                            }
+                    }
                 } else {
                     _verifyState.value =
                         Resource.Error("Kayıt başarısız! ${task.exception?.message}")
                 }
             }
     }
-
     fun signInWithEmail(email: String, password: String) {
         _authState.value = Resource.Loading()
 

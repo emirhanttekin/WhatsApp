@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.whatsapp.R
 import com.example.whatsapp.data.model.Message
 import com.example.whatsapp.databinding.ItemMessageReceivedBinding
@@ -13,8 +14,8 @@ import com.example.whatsapp.databinding.ItemMessageSentBinding
 import com.google.firebase.auth.FirebaseAuth
 import android.text.format.DateFormat
 import android.util.Log
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.firebase.Timestamp
-import java.util.*
 import javax.inject.Inject
 
 class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback()) {
@@ -27,10 +28,8 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
 
         fun formatTimestamp(timestamp: Timestamp?): String {
             return if (timestamp != null) {
-                val date = timestamp.toDate() // 🔥 Firestore Timestamp'i Date'e çevir
-                val localTime = Calendar.getInstance()
-                localTime.time = date
-                DateFormat.format("HH:mm", localTime).toString() // 🔥 Kullanıcının lokal saat dilimine çevir
+                val date = timestamp.toDate()
+                DateFormat.format("HH:mm", date).toString()
             } else {
                 ""
             }
@@ -55,7 +54,8 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val message = getItem(position)
-        Log.d("ChatAdapter", "📌 Adapter'da Güncellenen Mesaj: ${message.message}")
+        Log.d("ChatAdapter", "📌 Güncellenen Mesaj: ${message.message}")
+
         if (holder is SentMessageViewHolder) {
             holder.bind(message)
         } else if (holder is ReceivedMessageViewHolder) {
@@ -65,38 +65,49 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
 
     class SentMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemMessageSentBinding.bind(itemView)
+
         fun bind(message: Message) {
             binding.tvMessageSent.text = message.message
+            binding.tvMessageTimeSent.text = ChatAdapter.formatTimestamp(message.timestamp)
 
-            // 📌 Gelen `timestamp` verisi **String** olarak geliyorsa, dönüştür.
-            val timestamp = try {
-                message.timestamp?.toDate()
-            } catch (e: Exception) {
-                null
-            }
+            Log.d("ChatAdapter", "📷 Gönderilen Mesaj Profil Fotoğrafı: ${message.senderProfileImageUrl}")
 
-            binding.tvMessageTimeSent.text = timestamp?.let {
-                DateFormat.format("HH:mm", it).toString()
-            } ?: ""
+            val imageUrl = if (message.senderProfileImageUrl.isNotEmpty()) message.senderProfileImageUrl
+            else "https://example.com/default_avatar.png"
+
+            Glide.with(itemView.context)
+                .load(imageUrl)
+                .circleCrop()
+                .placeholder(R.drawable.ic_profile_placeholder)
+                .error(R.drawable.ic_profile_placeholder) // Eğer hata alırsa placeholder göster
+                .diskCacheStrategy(DiskCacheStrategy.ALL) // 🔥 Önbelleğe almayı etkinleştir
+                .into(binding.imgProfileSent)
         }
     }
 
     class ReceivedMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemMessageReceivedBinding.bind(itemView)
+
         fun bind(message: Message) {
             binding.tvMessageReceived.text = message.message
+            binding.tvMessageTimeReceived.text = ChatAdapter.formatTimestamp(message.timestamp)
 
-            val timestamp = try {
-                message.timestamp?.toDate()
-            } catch (e: Exception) {
-                null
-            }
+            Log.d("ChatAdapter", "📷 Alınan Mesaj Profil Fotoğrafı: ${message.senderProfileImageUrl}")
 
-            binding.tvMessageTimeReceived.text = timestamp?.let {
-                DateFormat.format("HH:mm", it).toString()
-            } ?: ""
+            val imageUrl = if (message.senderProfileImageUrl.isNotEmpty()) message.senderProfileImageUrl
+            else "https://example.com/default_avatar.png"
+
+            Glide.with(itemView.context)
+                .load(imageUrl)
+                .circleCrop()
+                .placeholder(R.drawable.ic_profile_placeholder)
+                .error(R.drawable.ic_profile_placeholder) // 🔥 Eğer hata olursa varsayılan görseli göster
+                .diskCacheStrategy(DiskCacheStrategy.ALL) // 🔥 Önbelleğe almayı zorla
+                .into(binding.imgProfileReceived)
         }
     }
+
+
 
     class DiffCallback : DiffUtil.ItemCallback<Message>() {
         override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {
@@ -107,5 +118,4 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
             return oldItem == newItem
         }
     }
-
 }
