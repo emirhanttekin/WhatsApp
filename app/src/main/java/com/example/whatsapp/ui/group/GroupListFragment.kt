@@ -47,8 +47,13 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
             }
         }
 
+
+        binding.btnProfile.setOnClickListener {
+            findNavController().navigate(R.id.action_groupListFragment_to_profileFragment)
+        }
+
         // Çıkış Yap Butonu
-        binding.logout.setOnClickListener {
+        binding.btnLogout.setOnClickListener {
             logoutUser()
         }
 

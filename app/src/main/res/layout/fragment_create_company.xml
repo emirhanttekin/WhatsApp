@@ -8,8 +8,8 @@
     android:padding="24dp"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".ui.company.CreateCompanyFragment"
-    android:background="@color/white">
+    android:background="?attr/colorSurfaceVariant"
+    tools:context=".ui.company.CreateCompanyFragment">
 
     <!-- Başlık -->
     <TextView
@@ -17,23 +17,35 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Yeni Şirket Oluştur"
-        android:textSize="20sp"
+        android:textSize="24sp"
         android:textStyle="bold"
+        android:fontFamily="@font/myfont"
+        android:textColor="?attr/colorOnSurface"
         android:layout_gravity="center"
-        android:layout_marginBottom="16dp"/>
+
+        android:layout_marginBottom="24dp"/>
 
     <!-- Şirket Adı -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Şirket Adı"
-        android:layout_marginBottom="16dp">
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="?attr/colorPrimary"
+        app:boxCornerRadiusTopStart="16dp"
+        app:boxCornerRadiusTopEnd="16dp"
+        app:boxCornerRadiusBottomStart="16dp"
+        app:boxCornerRadiusBottomEnd="16dp">
+
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etCompanyName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:fontFamily="@font/myfont"
+            android:padding="12dp"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Şirket Açıklaması -->
@@ -41,13 +53,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Şirket Açıklaması"
-        android:layout_marginBottom="16dp">
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="?attr/colorPrimary"
+        app:boxCornerRadiusTopStart="16dp"
+        app:boxCornerRadiusTopEnd="16dp"
+        app:boxCornerRadiusBottomStart="16dp"
+        app:boxCornerRadiusBottomEnd="16dp"
+        android:layout_marginBottom="20dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etCompanyDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:fontFamily="@font/myfont"
+            android:padding="12dp"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Kaydet Butonu -->
@@ -56,11 +77,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Şirketi Oluştur"
-        android:textSize="16sp"
-        android:backgroundTint="@color/green"
-        android:textColor="@color/white"
-        app:cornerRadius="8dp"
-        android:layout_marginTop="16dp"/>
+        android:textSize="18sp"
+        android:backgroundTint="?attr/colorPrimary"
+        android:textColor="?attr/colorOnPrimary"
+        app:cornerRadius="16dp"
+        android:fontFamily="@font/myfont"
+        android:layout_marginTop="20dp"
+        android:paddingVertical="12dp"/>
 
     <!-- Yükleme ProgressBar -->
     <ProgressBar
@@ -69,5 +92,5 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="20dp"/>
 </LinearLayout>

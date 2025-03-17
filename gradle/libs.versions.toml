@@ -24,6 +24,7 @@ glideVersion = "4.16.0"
 googleFirebaseFirestoreKtx = "24.8.1"
 googleHiltAndroid = "2.51.1"
 googleMaterial = "1.10.0"
+googleMaterialVersion = "1.11.0"
 hiltAndroid = "2.44"
 hiltAndroidCompiler = "2.51.1"
 hiltAndroidVersion = "2.50"
@@ -98,6 +99,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material-v1100 = { module = "com.google.android.material:material", version.ref = "googleMaterial" }
+material-v1110 = { module = "com.google.android.material:material", version.ref = "googleMaterialVersion" }
 material-v180 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 socket-socket-io-client = { module = "io.socket:socket.io-client", version.ref = "socketIoClientVersion" }
 ucropVersion = { module = "com.github.yalantis:ucrop", version.ref = "ucropVersion" }

@@ -82,8 +82,8 @@ dependencies {
     implementation(libs.androidx.appcompat.v161)
     implementation(libs.androidx.activity.ktx.v190)
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation(libs.material.v1100)
 
+    implementation (libs.material.v1110) // En son sürüm
     // ✅ Socket.IO (Gerçek Zamanlı Bağlantı)
     implementation(libs.socket.socket.io.client)
 

@@ -4,50 +4,75 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="0dp"
+    android:background="?attr/colorSurface"
+    tools:context=".ui.group.GroupListFragment">
 
-
-    <!-- 🔹 Grup Başlığı ve Davet Butonu -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardView"
+    <!-- 🔹 Üst Kısım: Arama Çubuğu, Profil ve Çıkış Butonları -->
+    <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="6dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:background="?attr/colorPrimary"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Arama Çubuğu -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            android:layout_marginEnd="12dp"
+            android:layout_weight="1"
+            android:hint="Grup Ara"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="?attr/colorOnPrimary"
+            app:boxBackgroundColor="?attr/colorSurface">
 
-            <TextView
-                android:id="@+id/tvGroupName"
-                android:layout_width="0dp"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSearchGroup"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text=""
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:drawableStart="@drawable/ic_search"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp"
+                android:background="@null"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <ImageButton
-                android:id="@+id/logout"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Çıkış"
-                android:src="@drawable/ic_logout"
-                tools:ignore="TouchTargetSizeCheck" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        <!-- Profil Butonu -->
+        <ImageButton
+            android:id="@+id/btnProfile"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Profil"
+            android:src="@drawable/ic_profile" />
 
-    <!-- Grup Listesi -->
+        <!-- Çıkış Butonu -->
+        <ImageButton
+            android:id="@+id/btnLogout"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Çıkış"
+            android:src="@drawable/ic_logout"
+           />
+    </LinearLayout>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCreateGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:backgroundTint="?attr/colorPrimary"
+        app:rippleColor="?attr/colorOnPrimary"
+        app:srcCompat="@drawable/ic_logout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- 🔹 Grup Listesi -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvGroups"
         android:layout_width="match_parent"
@@ -56,23 +81,7 @@
         android:overScrollMode="never"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView"
-        tools:layout_editor_absoluteX="16dp" />
-
-    <!-- Yeni Grup Ekle Butonu (Floating Action Button) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCreateGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="20dp"
-        android:layout_marginEnd="20dp"
-        app:backgroundTint="@color/blue"
-        app:rippleColor="@color/white"
-        app:srcCompat="@drawable/ic_send"/>
-
-    <!-- Yüklenme İlerleme Çubuğu -->
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -81,5 +90,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginBottom="20dp"/>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

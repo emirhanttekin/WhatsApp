@@ -47,6 +47,17 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             findNavController().navigate(action)
         }
 
+        binding.tvGroupName.setOnClickListener {
+            val action = ChatFragmentDirections.actionChatFragmentToGroupDetailsFragment(
+                groupId = groupId,  // 🤔 Bilerek ters çevirdik test için
+                groupName = groupName
+            )
+            findNavController().navigate(action)
+
+        }
+
+
+
 
         // 🔥 Socket bağlantısını kur
         viewModel.connectSocket()

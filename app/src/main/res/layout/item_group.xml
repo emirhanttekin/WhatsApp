@@ -3,29 +3,31 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="6dp"
-    android:padding="12dp">
+    android:layout_marginVertical="8dp"
+    android:layout_marginHorizontal="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    android:background="?attr/colorOutline">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- Grup İkonu -->
+        <!-- 🔹 Grup İkonu -->
         <ImageView
             android:id="@+id/ivGroupIcon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:src="@drawable/ic_group_placeholder"
             android:contentDescription="Grup İkonu"
             android:scaleType="centerCrop"
-            android:background="@drawable/ic_group_placeholder"
+
             android:padding="8dp"/>
 
-        <!-- Grup Bilgileri -->
+        <!-- 🔹 Grup Bilgileri -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -40,7 +42,7 @@
                 android:text="Grup Adı"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/black"/>
+                android:textColor="?attr/colorOnSurface"/>
 
             <TextView
                 android:id="@+id/tvGroupDescription"
@@ -48,19 +50,17 @@
                 android:layout_height="wrap_content"
                 android:text="Grup açıklaması buraya gelecek..."
                 android:textSize="14sp"
-                android:textColor="@color/gray"/>
+                android:textColor="?attr/colorOnSurfaceVariant"/>
         </LinearLayout>
 
-        <!-- Üye Sayısı -->
+        <!-- 🔹 Üye Sayısı -->
         <TextView
             android:id="@+id/tvMemberCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="5 Üye"
             android:textSize="14sp"
-            android:textColor="@color/gray"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginEnd="12dp"/>
-
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>
