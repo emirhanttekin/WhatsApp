@@ -26,16 +26,14 @@ class AuthViewModel @Inject constructor(
     private val _authState = MutableLiveData<Resource<FirebaseUser?>>()
     val authState: LiveData<Resource<FirebaseUser?>> get() = _authState
 
-    private val _generatedOtp = MutableLiveData<String?>()  // Gönderilen OTP kodu
+    private val _generatedOtp = MutableLiveData<String?>()
 
-    /**
-     * 🔹 Kullanıcıyı e-posta ve şifre ile kayıt eder ama önce doğrulama kodu yollar.
-     */
+
     fun registerWithEmail(email: String, password: String) {
         _otpState.value = Resource.Loading()
 
-        val otpCode = (100000..999999).random().toString()  // 🔥 Rastgele 6 haneli kod oluştur
-        _generatedOtp.value = otpCode  // Kodun kaydını tut
+        val otpCode = (100000..999999).random().toString()
+        _generatedOtp.value = otpCode
 
         val emailData = hashMapOf(
             "email" to email,
@@ -55,9 +53,6 @@ class AuthViewModel @Inject constructor(
     }
 
 
-    /**
-     * 🔹 Kullanıcının girdiği kodu doğrular ve kayıt işlemini tamamlar.
-     */
     fun verifyEmailOtp(email: String, enteredOtp: String) {
         firestore.collection("email_verifications").document(email)
             .get()
@@ -84,8 +79,8 @@ class AuthViewModel @Inject constructor(
                     if (user != null) {
                         val userData = hashMapOf(
                             "email" to email,
-                            "role" to "USER",  // Kullanıcı rolü
-                            "companyId" to "",  // Şirket ID boş olacak
+                            "role" to "USER",
+                            "companyId" to "",
                             "name" to "",
                             "surname" to "",
                             "profileImageUrl" to ""
@@ -115,7 +110,7 @@ class AuthViewModel @Inject constructor(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
-                    _authState.value = Resource.Success(user) // ✅ Direkt giriş yapmasını sağladık!
+                    _authState.value = Resource.Success(user)
                 } else {
                     _authState.value = Resource.Error(task.exception?.message ?: "Giriş başarısız!")
                 }

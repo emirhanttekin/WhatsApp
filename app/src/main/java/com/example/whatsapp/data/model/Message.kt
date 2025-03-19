@@ -7,13 +7,14 @@ import com.example.whatsapp.data.local.TimestampConverter
 import com.google.firebase.Timestamp
 
 @Entity(tableName = "messages")
-@TypeConverters(TimestampConverter::class) // 🔥 Timestamp için dönüşüm ekliyoruz
+@TypeConverters(TimestampConverter::class)
 data class Message(
-    @PrimaryKey val id: String = "",  // ✅ PrimaryKey ekledik
+    @PrimaryKey val id: String = "",
     val senderId: String = "",
     val groupId: String = "",
     val senderName: String = "",
     val senderProfileImageUrl: String = "",
-    val message: String = "",
-    val timestamp: Timestamp = Timestamp.now() // 🔥 Firestore Timestamp
+    val message: String? = "",
+    val imageUrl: String? = null,
+    val timestamp: Timestamp = Timestamp.now()
 )

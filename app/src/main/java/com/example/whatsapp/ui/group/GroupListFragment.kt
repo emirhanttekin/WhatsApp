@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -33,12 +34,22 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
         viewModel.loadGroups()
         viewModel.checkForPendingInvites()
 
+        binding.etSearchGroup.addTextChangedListener { text ->
+            val query = text.toString().trim()
+            viewModel.filterGroups(query)
+        }
+
+        viewModel.filteredGroups.observe(viewLifecycleOwner) { groups ->
+            groupListAdapter.submitList(groups)
+        }
+
+
         viewModel.groupList.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is Resource.Loading -> binding.progressBar.visibility = View.VISIBLE
                 is Resource.Success -> {
                     binding.progressBar.visibility = View.GONE
-                    groupListAdapter.submitList(state.data ?: emptyList()) // ✅ NULL KONTROLÜ
+                    groupListAdapter.submitList(state.data ?: emptyList())
                 }
                 is Resource.Error -> {
                     binding.progressBar.visibility = View.GONE
@@ -52,7 +63,7 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
             findNavController().navigate(R.id.action_groupListFragment_to_profileFragment)
         }
 
-        // Çıkış Yap Butonu
+
         binding.btnLogout.setOnClickListener {
             logoutUser()
         }
@@ -81,22 +92,22 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
     }
 
     private fun logoutUser() {
-        // Firebase Authentication'dan çıkış yap
+
         auth.signOut()
 
-        // Kullanıcı bilgisini temizle
+
         clearUserSession()
 
-        // Login sayfasına yönlendir
+
         findNavController().navigate(R.id.action_groupListFragment_to_loginFragment)
     }
 
     private fun clearUserSession() {
-        // 🔥 SharedPreferences Kullanarak Kullanıcı Oturumunu Temizle
+
         val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         sharedPreferences.edit().clear().apply()
 
-        // 🔥 Firestore Cache Temizleme
+
         firestore.clearPersistence()
     }
 }

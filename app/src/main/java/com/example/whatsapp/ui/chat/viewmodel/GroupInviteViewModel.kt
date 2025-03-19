@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.whatsapp.data.model.GroupInvitation
 import com.example.whatsapp.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,16 +21,16 @@ class GroupInviteViewModel @Inject constructor(
     private val _userRole = MutableLiveData<String>()
     val userRole: LiveData<String> get() = _userRole
 
-    //  Kullanıcının rolünü kontrol et
+
     fun checkUserRole(groupId: String, userId: String) {
         firestore.collection("groups").document(groupId)
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val ownerId = document.getString("ownerId") ?: ""
-                    Log.d("OWNER_CHECK", "Owner ID: $ownerId - Current User ID: $userId") // ✅ LOG EKLEDİK
+                    Log.d("OWNER_CHECK", "Owner ID: $ownerId - Current User ID: $userId")
 
-                    // Eğer giriş yapan kullanıcı ownerId ile eşleşiyorsa OWNER yap
+
                     _userRole.value = if (ownerId == userId) "OWNER" else "MEMBER"
                 } else {
                     _userRole.value = "MEMBER"
@@ -42,7 +41,7 @@ class GroupInviteViewModel @Inject constructor(
             }
     }
 
-    // Kullanıcıya grup daveti gönder
+
     fun inviteUserToGroup(groupId: String, groupName: String, inviteEmail: String) {
         _inviteState.value = Resource.Loading()
 
@@ -50,7 +49,7 @@ class GroupInviteViewModel @Inject constructor(
             "groupId" to groupId,
             "groupName" to groupName,
             "receiverEmail" to inviteEmail,
-            "status" to "pending",  // Kullanıcının kabul etmesini bekliyoruz
+            "status" to "pending",
             "timestamp" to System.currentTimeMillis()
         )
 

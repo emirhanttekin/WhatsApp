@@ -29,7 +29,7 @@ class CreateGroupViewModel @Inject constructor(
         val group = Group(
             id = groupId,
             name = groupName,
-            companyId = companyId,  // 🔥 companyId artık boş değil
+            companyId = companyId,
             members = listOf(userId),
             ownerId = userId
         )

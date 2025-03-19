@@ -22,13 +22,13 @@ class CreateGroupFragment : Fragment(R.layout.fragment_create_group) {
 
     private val viewModel: CreateGroupViewModel by viewModels()
     private lateinit var binding: FragmentCreateGroupBinding
-    private var companyId: String = ""  // 🔥 companyId değişkeni
+    private var companyId: String = ""
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentCreateGroupBinding.bind(view)
 
-        // 🔥 Kullanıcının companyId'sini Firestore'dan çekiyoruz
+
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val firestore = FirebaseFirestore.getInstance()
 
@@ -47,7 +47,7 @@ class CreateGroupFragment : Fragment(R.layout.fragment_create_group) {
             val groupName = binding.etGroupName.text.toString().trim()
 
             if (groupName.isNotEmpty() && companyId.isNotEmpty()) {
-                viewModel.createGroup(companyId, groupName) // ✅ companyId artık alınmış olacak
+                viewModel.createGroup(companyId, groupName)
             } else {
                 Toast.makeText(requireContext(), "Şirket ID eksik!", Toast.LENGTH_SHORT).show()
             }

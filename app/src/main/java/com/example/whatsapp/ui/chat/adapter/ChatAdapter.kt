@@ -67,20 +67,38 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
         private val binding = ItemMessageSentBinding.bind(itemView)
 
         fun bind(message: Message) {
-            binding.tvMessageSent.text = message.message
+
+            val isImageMessage = !message.imageUrl.isNullOrEmpty() && message.imageUrl != "null"
+
+            if (isImageMessage) {
+
+                binding.tvMessageSent.visibility = View.GONE
+                binding.imgMessageSent.visibility = View.VISIBLE
+
+                Glide.with(itemView.context)
+                    .load(message.imageUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(binding.imgMessageSent)
+            } else {
+
+                binding.tvMessageSent.visibility = View.VISIBLE
+                binding.tvMessageSent.text = message.message
+                binding.imgMessageSent.visibility = View.GONE
+            }
+
             binding.tvMessageTimeSent.text = ChatAdapter.formatTimestamp(message.timestamp)
 
-            Log.d("ChatAdapter", "📷 Gönderilen Mesaj Profil Fotoğrafı: ${message.senderProfileImageUrl}")
-
-            val imageUrl = if (message.senderProfileImageUrl.isNotEmpty()) message.senderProfileImageUrl
+            val profileImageUrl = if (!message.senderProfileImageUrl.isNullOrEmpty()) message.senderProfileImageUrl
             else "https://example.com/default_avatar.png"
 
             Glide.with(itemView.context)
-                .load(imageUrl)
+                .load(profileImageUrl)
                 .circleCrop()
                 .placeholder(R.drawable.ic_profile_placeholder)
-                .error(R.drawable.ic_profile_placeholder) // Eğer hata alırsa placeholder göster
-                .diskCacheStrategy(DiskCacheStrategy.ALL) // 🔥 Önbelleğe almayı etkinleştir
+                .error(R.drawable.ic_profile_placeholder)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.imgProfileSent)
         }
     }
@@ -89,25 +107,41 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
         private val binding = ItemMessageReceivedBinding.bind(itemView)
 
         fun bind(message: Message) {
-            binding.tvMessageReceived.text = message.message
+
+            val isImageMessage = !message.imageUrl.isNullOrEmpty() && message.imageUrl != "null"
+
+            if (isImageMessage) {
+
+                binding.tvMessageReceived.visibility = View.GONE
+                binding.imgMessageReceived.visibility = View.VISIBLE
+
+                Glide.with(itemView.context)
+                    .load(message.imageUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(binding.imgMessageReceived)
+            } else {
+
+                binding.tvMessageReceived.visibility = View.VISIBLE
+                binding.tvMessageReceived.text = message.message
+                binding.imgMessageReceived.visibility = View.GONE
+            }
+
             binding.tvMessageTimeReceived.text = ChatAdapter.formatTimestamp(message.timestamp)
 
-            Log.d("ChatAdapter", "📷 Alınan Mesaj Profil Fotoğrafı: ${message.senderProfileImageUrl}")
-
-            val imageUrl = if (message.senderProfileImageUrl.isNotEmpty()) message.senderProfileImageUrl
+            val profileImageUrl = if (!message.senderProfileImageUrl.isNullOrEmpty()) message.senderProfileImageUrl
             else "https://example.com/default_avatar.png"
 
             Glide.with(itemView.context)
-                .load(imageUrl)
+                .load(profileImageUrl)
                 .circleCrop()
                 .placeholder(R.drawable.ic_profile_placeholder)
-                .error(R.drawable.ic_profile_placeholder) // 🔥 Eğer hata olursa varsayılan görseli göster
-                .diskCacheStrategy(DiskCacheStrategy.ALL) // 🔥 Önbelleğe almayı zorla
+                .error(R.drawable.ic_profile_placeholder)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.imgProfileReceived)
         }
     }
-
-
 
     class DiffCallback : DiffUtil.ItemCallback<Message>() {
         override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {

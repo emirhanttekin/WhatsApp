@@ -22,9 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    application: Application, // ✅ AndroidViewModel için gerekli
+    application: Application,
     private val messageDao: MessageDao
-) : AndroidViewModel(application) { // ✅ ViewModel yerine AndroidViewModel kullan
+) : AndroidViewModel(application) {
 
     private val _messagesLiveData = MutableLiveData<List<Message>>()
     val messagesLiveData: LiveData<List<Message>> get() = _messagesLiveData
@@ -32,7 +32,7 @@ class ChatViewModel @Inject constructor(
     private val messagesList = mutableListOf<Message>()
     private val firestore = FirebaseFirestore.getInstance()
     private val messagesCollection = firestore.collection("messages")
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance() // ✅ Eksik tanımlamayı ekledik
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     fun connectSocket() {
         Log.d("ChatViewModel", "⏳ Socket bağlantısı sağlanıyor...")
@@ -51,7 +51,7 @@ class ChatViewModel @Inject constructor(
     }
 
 
-    fun sendMessage(groupId: String, messageText: String, senderId: String) {
+    fun sendMessage(groupId: String, messageText: String?, imageUrl: String?, senderId: String) {
         val userRef = firestore.collection("users").document(senderId)
 
         userRef.get().addOnSuccessListener { document ->
@@ -60,83 +60,84 @@ class ChatViewModel @Inject constructor(
                 val senderProfileImageUrl = document.getString("profileImageUrl") ?: ""
 
                 val timestamp = Timestamp.now()
-                val messageId = "${groupId}_${timestamp.seconds}" // 🔥 Unik ID ekle
+                val messageId = "${groupId}_${timestamp.seconds}"
 
                 val message = Message(
-                    id = messageId, // 🔥 ID'yi belirledik
+                    id = messageId,
                     senderId = senderId,
                     senderName = senderName,
                     senderProfileImageUrl = senderProfileImageUrl,
                     groupId = groupId,
-                    message = messageText,
+                    message = messageText ?: "",
+                    imageUrl = imageUrl,
                     timestamp = timestamp
                 )
 
-                // 🔥 Mesajı Room’a kaydet
+
                 saveMessageToLocal(message)
 
-                // 🔥 Firestore’a kaydet
-                saveMessageToFirebase(message)
 
-                // 🔥 Socket ile gönder
-                SocketManager.sendMessage(groupId, messageText, senderId, senderName, senderProfileImageUrl)
+                messagesCollection.document(message.id).set(message)
 
-                // 🔥 Eğer chat ekranı açık değilse bildirim gönder
-                if (!isChatScreenVisible && isUserLoggedIn()) {
-                    sendNotification(message)
-                }
+
+                SocketManager.sendMessage(groupId, messageText, senderId, senderName, senderProfileImageUrl, imageUrl)
+
+
             }
-
         }
     }
+
+
+
+
 
 
 
 
     fun listenForMessages() {
-        Log.d("ChatViewModel", "⏳ Yeni mesaj dinleniyor...")
+        Log.d("ChatViewModel", "⏳ Yeni mesajlar dinleniyor...")
 
-        SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl ->
-            try {
-                val timestamp = Timestamp.now()
-                val messageId = "${groupId}_${timestamp.seconds}"
+        SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, timestamp ->
+            val messageId = "${groupId}_${timestamp.seconds}"
 
-                // 🔥 Eğer mesaj zaten varsa tekrar eklemeyi önle
-                if (messagesList.any { it.id == messageId }) {
-                    Log.w("ChatViewModel", "⚠ Mesaj zaten var, tekrar eklenmeyecek!")
-                    return@setOnMessageReceivedListener
-                }
 
-                val message = Message(
-                    id = messageId,
-                    senderId = senderId,
-                    senderProfileImageUrl = senderProfileImageUrl,
-                    groupId = groupId,
-                    message = text,
-                    timestamp = timestamp
-                )
-
-                saveMessageToLocal(message)
-                messagesList.add(message)
-                _messagesLiveData.postValue(ArrayList(messagesList))
-
-                // 🔥 Eğer chat ekranı açık değilse bildirim gönder
-                if (!isChatScreenVisible && isUserLoggedIn()) {
-                    sendNotification(message)
-                }
-
-                // 🔥 Eğer chat ekranı açık değilse bildirim gönder
-                if (!isChatScreenVisible && isUserLoggedIn()) {
-                    sendNotification(message)
-                }
-
-                Log.d("ChatViewModel", "✅ Yeni mesaj eklendi: $text")
-
-            } catch (e: Exception) {
-                Log.e("ChatViewModel", "❌ Mesaj dinleme hatası: ${e.message}")
+            if (messagesList.any { it.id == messageId }) {
+                Log.w("ChatViewModel", "⚠ Mesaj zaten var, tekrar eklenmeyecek!")
+                return@setOnMessageReceivedListener
             }
+
+            val messageContent = when {
+                !text.isNullOrEmpty() -> text
+                !imageUrl.isNullOrEmpty() -> "[Görsel mesaj]"
+                else -> return@setOnMessageReceivedListener
+            }
+
+            val message = Message(
+                id = messageId,
+                senderId = senderId,
+                senderProfileImageUrl = senderProfileImageUrl,
+                groupId = groupId,
+                message = messageContent,
+                imageUrl = imageUrl,
+                timestamp = timestamp
+            )
+
+
+            saveMessageToLocal(message)
+
+
+            messagesList.add(message)
+            _messagesLiveData.postValue(ArrayList(messagesList))
+
+
+            if (!isChatScreenVisible && isUserLoggedIn()) {
+                sendNotification(message)
+            }
+
+            Log.d("ChatViewModel", "✅ Yeni mesaj eklendi: $messageContent")
         }
     }
+
 
 
 
@@ -152,7 +153,7 @@ class ChatViewModel @Inject constructor(
                 for (document in documents) {
                     val message = document.toObject(Message::class.java)
 
-                    // 🔥 Eğer mesaj zaten varsa tekrar ekleme!
+
                     if (messagesList.any { it.id == message.id }) {
                         continue
                     }
@@ -160,7 +161,7 @@ class ChatViewModel @Inject constructor(
                     messages.add(message)
                 }
 
-                // 🔥 Listeye ekleyip UI'ı güncelle
+
                 messagesList.addAll(messages)
                 _messagesLiveData.postValue(ArrayList(messagesList))
 
@@ -188,19 +189,17 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val localMessages = messageDao.getMessages(groupId)
 
-            // 🔥 Eğer mesajlar zaten ekliyse, tekrar eklemeyi önle
-            if (messagesList.isNotEmpty()) {
-                Log.w("ChatViewModel", "⚠ Zaten mesajlar var, tekrar yüklenmeyecek!")
-                return@launch
-            }
+            Log.d("ChatViewModel", "📥 Room’dan çekilen mesajlar: ${localMessages.size} adet")
+            localMessages.forEach { Log.d("ChatViewModel", "🔥 Room Mesajı: ${it.message}") }
 
             messagesList.clear()
             messagesList.addAll(localMessages)
             _messagesLiveData.postValue(ArrayList(messagesList))
 
-            Log.d("ChatViewModel", "✅ Room'dan mesajlar yüklendi -> Mesaj Sayısı: ${messagesList.size}")
+            Log.d("ChatViewModel", "✅ Room’dan mesajlar UI’a yansıtıldı.")
         }
     }
+
 
 
 
@@ -241,7 +240,7 @@ class ChatViewModel @Inject constructor(
                     context,
                     groupName = groupName,
                     senderName = message.senderName,
-                    message = message.message
+                    message = message.message ?: ""
                 )
 
                 Log.d("ChatViewModel", "🔔 Bildirim gönderildi: ${message.message}")

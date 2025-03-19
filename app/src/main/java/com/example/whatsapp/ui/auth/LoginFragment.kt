@@ -32,7 +32,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         auth = FirebaseAuth.getInstance()
 
-        // Kullanıcı oturumu açık mı kontrol et
+
         checkUserSession()
 
         binding.btnLogin.setOnClickListener {
@@ -72,7 +72,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private fun checkUserSession() {
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // 🔥 Kullanıcının Firestore'daki bilgilerini kontrol et
+
             firestore.collection("users").document(currentUser.uid)
                 .get()
                 .addOnSuccessListener { document ->
@@ -81,15 +81,15 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                         val surname = document.getString("surname")
                         val profileImageUrl = document.getString("profileImageUrl")
 
-                        // 🔥 Eğer profil eksikse, ProfileSetupFragment'a yönlendir
+
                         if (name.isNullOrEmpty() || surname.isNullOrEmpty() || profileImageUrl.isNullOrEmpty()) {
                             findNavController().navigate(R.id.action_loginFragment_to_profileSetupFragment2)
                         } else {
-                            // 🔥 Kullanıcının profili tamamsa, grup listesi sayfasına yönlendir
+
                             findNavController().navigate(R.id.action_loginFragment_to_groupListFragment)
                         }
                     } else {
-                        // Kullanıcı kaydı yoksa, profil setup sayfasına yönlendir
+
                         findNavController().navigate(R.id.action_loginFragment_to_profileSetupFragment2)
                     }
                 }
@@ -109,7 +109,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private fun checkForGroupInvitations(userEmail: String) {
         val userId = auth.currentUser?.uid ?: return
 
-        // 🔥 Kullanıcının Firestore'daki bilgilerini kontrol et
+
         firestore.collection("users").document(userId)
             .get()
             .addOnSuccessListener { document ->
@@ -118,13 +118,13 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     val surname = document.getString("surname")
                     val profileImageUrl = document.getString("profileImageUrl")
 
-                    // 🔥 Eğer profil eksikse, ProfileSetupFragment'a yönlendir
+
                     if (name.isNullOrEmpty() || surname.isNullOrEmpty() || profileImageUrl.isNullOrEmpty()) {
                         findNavController().navigate(R.id.action_loginFragment_to_profileSetupFragment2)
                         return@addOnSuccessListener
                     }
 
-                    // 🔥 Kullanıcı profili TAMAMSA grup davetlerini kontrol et
+
                     firestore.collection("groupInvitations")
                         .document(userEmail)
                         .get()
@@ -147,7 +147,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                                         .show()
                                 }
                             } else {
-                                // 🔥 Kullanıcının grubu yoksa, direkt grup listesine yönlendir
+
                                 findNavController().navigate(R.id.action_loginFragment_to_groupListFragment)
                             }
                         }
@@ -156,7 +156,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                             Toast.makeText(requireContext(), "Davetler kontrol edilirken hata oluştu", Toast.LENGTH_SHORT).show()
                         }
                 } else {
-                    // Kullanıcı kaydı yoksa, yine profil setup sayfasına yönlendir
+
                     findNavController().navigate(R.id.action_loginFragment_to_profileSetupFragment2)
                 }
             }
@@ -178,7 +178,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
             val groupRef = firestore.collection("groups").document(groupId)
 
-            groupRef.update("members", FieldValue.arrayUnion(userId))  // ✅ Kullanıcı ID ekleniyor!
+            groupRef.update("members", FieldValue.arrayUnion(userId))
                 .addOnSuccessListener {
                     Toast.makeText(requireContext(), "Gruba başarıyla katıldınız!", Toast.LENGTH_SHORT).show()
                     deleteInvitation(userEmail)
@@ -186,18 +186,13 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 }
                 .addOnFailureListener { exception ->
                     Toast.makeText(requireContext(), "Gruba katılırken hata oluştu!", Toast.LENGTH_SHORT).show()
-//                    Log.e("LoginFragment", "Gruba katılırken hata oluştu", exception)
+
                 }
         } else {
             Toast.makeText(requireContext(), "Kullanıcı oturumu açık değil! Lütfen giriş yapın.", Toast.LENGTH_SHORT).show()
             Log.e("FirebaseAuth", "Kullanıcı oturumu açık değil: $userEmail")
         }
     }
-
-
-
-
-
 
 
     private fun declineInvitation(userEmail: String) {
@@ -221,12 +216,12 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         userRef.get().addOnSuccessListener { document ->
             if (!document.exists()) {
-                // Yeni kullanıcı Firestore'a ekleniyor
+
                 val newUser = mapOf(
                     "uid" to userId,
                     "email" to email,
-                    "companyId" to null, // Varsayılan olarak şirket ID'si boş
-                    "role" to "member"   // Varsayılan rol: üye
+                    "companyId" to null,
+                    "role" to "member"
                 )
                 userRef.set(newUser)
                     .addOnSuccessListener {

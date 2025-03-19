@@ -17,7 +17,7 @@ class VerifyOTPFragment : Fragment(R.layout.fragment_verify_o_t_p) {
 
     private val viewModel: AuthViewModel by viewModels()
     private lateinit var binding: FragmentVerifyOTPBinding
-    private val args: VerifyOTPFragmentArgs by navArgs() // ✅ Args tanımlandı
+    private val args: VerifyOTPFragmentArgs by navArgs()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -55,7 +55,7 @@ class VerifyOTPFragment : Fragment(R.layout.fragment_verify_o_t_p) {
                 }
 
                 else -> {
-                    // ✅ Eğer başka bir durum olursa, else ekleyerek hatayı önlüyoruz.
+
                     binding.progressBar.visibility = View.GONE
                 }
             }

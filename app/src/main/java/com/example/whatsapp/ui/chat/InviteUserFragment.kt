@@ -19,7 +19,7 @@ class InviteUserFragment : Fragment(R.layout.fragment_invite_user) {
 
     private val viewModel: GroupInviteViewModel by viewModels()
     private lateinit var binding: FragmentInviteUserBinding
-    private val args: InviteUserFragmentArgs by navArgs() // ✅ groupId ve groupName parametresi alınıyor
+    private val args: InviteUserFragmentArgs by navArgs()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -29,10 +29,9 @@ class InviteUserFragment : Fragment(R.layout.fragment_invite_user) {
         val groupName = args.groupName
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-        // ✅ Ekranda grup adını göstermek için
+
         binding.tvGroupName.text = "Grup: $groupName"
 
-        // ✅ Kullanıcının yetkisini kontrol et (Sadece OWNER davet gönderebilir)
         viewModel.checkUserRole(groupId, currentUserId)
 
         viewModel.userRole.observe(viewLifecycleOwner) { role ->
@@ -40,7 +39,7 @@ class InviteUserFragment : Fragment(R.layout.fragment_invite_user) {
                 binding.btnSendInvite.isEnabled = false
                 Toast.makeText(requireContext(), "Sadece grup sahibi davet gönderebilir!", Toast.LENGTH_LONG).show()
             } else {
-                binding.btnSendInvite.isEnabled = true // OWNER ise butonu aktif yap!
+                binding.btnSendInvite.isEnabled = true
             }
         }
 
@@ -48,13 +47,13 @@ class InviteUserFragment : Fragment(R.layout.fragment_invite_user) {
             val inviteEmail = binding.etEmail.text.toString().trim()
 
             if (inviteEmail.isNotEmpty() && groupId.isNotEmpty()) {
-                viewModel.inviteUserToGroup(groupId, groupName, inviteEmail) // ✅ Davet gönder
+                viewModel.inviteUserToGroup(groupId, groupName, inviteEmail)
             } else {
                 Toast.makeText(requireContext(), "E-posta adresi boş olamaz!", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // ✅ Davet Gönderme Durumunu Dinle
+
         viewModel.inviteState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is Resource.Loading -> {

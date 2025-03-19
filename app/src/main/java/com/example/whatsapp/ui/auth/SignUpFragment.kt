@@ -29,7 +29,7 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
                 binding.progressBar.visibility = View.VISIBLE
                 viewModel.registerWithEmail(email, password)
 
-                // 🔥 Email parametresini VerifyOTPFragment'e gönder!
+
                 val action = SignUpFragmentDirections.actionSignUpFragmentToVerifyOTPFragment(email)
                 findNavController().navigate(action)
             } else {

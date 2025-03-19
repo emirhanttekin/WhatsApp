@@ -103,19 +103,19 @@ class ProfileSetupFragment : Fragment(R.layout.fragment_profile_setup) {
         val destinationUri = Uri.fromFile(File(requireContext().cacheDir, "cropped_image.jpg"))
 
         val options = UCrop.Options().apply {
-            setCompressionFormat(Bitmap.CompressFormat.PNG)  // Şeffaflık desteği için PNG
-            setCompressionQuality(100)  // En yüksek kalite
-            setHideBottomControls(true) // ✅ Alt kontrolleri (scale vb.) gizle, tam ekran mod
-            setCircleDimmedLayer(true)  // ✅ Oval kırpma
-            setShowCropGrid(false)  // ✅ Izgarayı kaldır
-            setShowCropFrame(false)  // ✅ Kırpma çerçevesini kaldır
+            setCompressionFormat(Bitmap.CompressFormat.PNG)
+            setCompressionQuality(100)
+            setHideBottomControls(true)
+            setCircleDimmedLayer(true)
+            setShowCropGrid(false)
+            setShowCropFrame(false)
             setFreeStyleCropEnabled(false)
-            setAllowedGestures(UCropActivity.SCALE, UCropActivity.NONE, UCropActivity.SCALE) // ✅ Sadece yakınlaştırma ve sürükleme
+            setAllowedGestures(UCropActivity.SCALE, UCropActivity.NONE, UCropActivity.SCALE)
         }
 
         UCrop.of(sourceUri, destinationUri)
-            .withAspectRatio(1f, 1f)  // 1:1 oranında kırp
-            .withMaxResultSize(1000, 1000) // Daha yüksek çözünürlük
+            .withAspectRatio(1f, 1f)
+            .withMaxResultSize(1000, 1000)
             .withOptions(options)
             .start(requireContext(), this)
     }

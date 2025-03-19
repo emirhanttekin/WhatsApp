@@ -23,6 +23,12 @@
         android:minWidth="50dp"
         android:maxWidth="250dp"
         android:baselineAligned="false">
+        <ImageView
+            android:id="@+id/imgMessageReceived"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/tvMessageReceived"
@@ -34,6 +40,7 @@
             android:textColor="@android:color/black"
             android:layout_weight="1"
             android:layout_marginEnd="4dp"/>
+
 
         <TextView
             android:id="@+id/tvMessageTimeReceived"

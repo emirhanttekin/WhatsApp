@@ -18,7 +18,7 @@ interface MessageDao {
     suspend fun deleteOldMessages(cutoffTime: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMessages(messages: List<Message>)  // 🔥 **Toplu mesaj ekleme**
+    suspend fun insertMessages(messages: List<Message>)
 
     @Query("SELECT * FROM messages WHERE id = :messageId LIMIT 1")
     suspend fun getMessageById(messageId: String): Message?

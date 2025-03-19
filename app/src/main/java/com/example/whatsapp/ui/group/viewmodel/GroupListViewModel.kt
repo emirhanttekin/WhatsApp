@@ -20,26 +20,40 @@ class GroupListViewModel @Inject constructor(
     private val _groupList = MutableLiveData<Resource<List<Group>>>()
     val groupList: LiveData<Resource<List<Group>>> get() = _groupList
 
+    private val _filteredGroups = MutableLiveData<List<Group>>()
+    val filteredGroups: LiveData<List<Group>> get() = _filteredGroups
+
+    private var allGroups: List<Group> = emptyList()
 
     fun loadGroups() {
         _groupList.value = Resource.Loading()
 
-        val userId = auth.currentUser?.uid ?: return // Kullanıcı giriş yapmış mı?
+        val userId = auth.currentUser?.uid ?: return
 
         firestore.collection("groups")
-            .whereArrayContains("members", userId) // ✅ Kullanıcının üye olduğu grupları çek
+            .whereArrayContains("members", userId)
             .get()
             .addOnSuccessListener { snapshot ->
                 val groups = snapshot.documents.mapNotNull { it.toObject(Group::class.java) }
+                allGroups = groups
                 _groupList.value = Resource.Success(groups)
+                _filteredGroups.value = groups
             }
             .addOnFailureListener {
                 _groupList.value = Resource.Error("Gruplar yüklenemedi!")
             }
     }
 
+    fun filterGroups(query: String) {
+        _filteredGroups.value = if (query.isEmpty()) {
+            allGroups
+        } else {
+            allGroups.filter { it.name.contains(query, ignoreCase = true) }
+        }
+    }
+
     fun checkForPendingInvites() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = auth.currentUser?.uid ?: return
 
         firestore.collection("group_invitations")
             .whereEqualTo("userId", userId)
@@ -50,11 +64,11 @@ class GroupListViewModel @Inject constructor(
                     for (doc in snapshot.documents) {
                         val groupId = doc.getString("groupId") ?: continue
 
-                        // Kullanıcıyı gruba ekle
+
                         firestore.collection("groups").document(groupId)
                             .update("members", FieldValue.arrayUnion(userId))
                             .addOnSuccessListener {
-                                // Davetiyeyi `accepted` olarak güncelle
+
                                 firestore.collection("group_invitations").document(doc.id)
                                     .update("status", "accepted")
                             }
@@ -62,6 +76,4 @@ class GroupListViewModel @Inject constructor(
                 }
             }
     }
-
-
 }

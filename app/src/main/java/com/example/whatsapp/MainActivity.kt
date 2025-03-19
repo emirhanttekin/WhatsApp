@@ -18,16 +18,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // API 33 ve üstü için bildirim izni kontrolü
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
-                    android.Manifest.permission.POST_NOTIFICATIONS // 📌 Manuel ekle
+                    android.Manifest.permission.POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 ActivityCompat.requestPermissions(
                     this,
-                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), // 📌 Düzeltildi
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
                     101
                 )
             }
@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    // 🔥 Kullanıcı izni verdi mi kontrol et
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -45,10 +45,10 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == 101) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Kullanıcı izin verdi
+
                 Log.d("MainActivity", "Bildirim izni verildi.")
             } else {
-                // Kullanıcı izni reddetti
+
                 Log.e("MainActivity", "Bildirim izni reddedildi.")
             }
         }

@@ -31,7 +31,7 @@ class CompanyViewModel @Inject constructor(
                     val company = result.documents.first().toObject(Company::class.java)
                     _companyState.value = Resource.Success(company)
                 } else {
-                    _companyState.value = Resource.Success(null)  // Kullanıcının şirketi yoksa null dön
+                    _companyState.value = Resource.Success(null)
                 }
             }
             .addOnFailureListener { exception ->

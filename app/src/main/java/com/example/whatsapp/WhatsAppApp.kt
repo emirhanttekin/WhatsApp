@@ -7,6 +7,6 @@ import dagger.hilt.android.HiltAndroidApp
 class WhatsAppApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        FirebaseApp.initializeApp(this) // Firebase başlatılıyor 🚀
+        FirebaseApp.initializeApp(this)
     }
 }

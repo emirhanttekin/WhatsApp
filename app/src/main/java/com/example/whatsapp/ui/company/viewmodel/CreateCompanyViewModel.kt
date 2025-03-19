@@ -15,7 +15,7 @@ class CreateCompanyViewModel @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
-    private val _createCompanyState = MutableLiveData<Resource<String>>() // ✅ companyId'yi döndür
+    private val _createCompanyState = MutableLiveData<Resource<String>>()
     val createCompanyState: LiveData<Resource<String>> get() = _createCompanyState
 
     fun createCompany(companyName: String, companyDescription: String) {
@@ -25,7 +25,7 @@ class CreateCompanyViewModel @Inject constructor(
             return
         }
 
-        val companyId = firestore.collection("companies").document().id // ✅ Şirket ID oluştur
+        val companyId = firestore.collection("companies").document().id
         val companyData = hashMapOf(
             "id" to companyId,
             "name" to companyName,
@@ -38,7 +38,7 @@ class CreateCompanyViewModel @Inject constructor(
         firestore.collection("companies").document(companyId)
             .set(companyData)
             .addOnSuccessListener {
-                addUserToCompany(user.uid, companyId) // 🔥 OWNER olarak kullanıcı ekle
+                addUserToCompany(user.uid, companyId)
             }
             .addOnFailureListener { e ->
                 _createCompanyState.value = Resource.Error("Şirket oluşturulamadı! Hata: ${e.message}")
@@ -48,13 +48,13 @@ class CreateCompanyViewModel @Inject constructor(
     private fun addUserToCompany(userId: String, companyId: String) {
         val userCompanyData = hashMapOf(
             "companyId" to companyId,
-            "role" to "OWNER"  // ✅ Kullanıcı otomatik OWNER olacak
+            "role" to "OWNER"
         )
 
         firestore.collection("users").document(userId)
-            .set(userCompanyData, com.google.firebase.firestore.SetOptions.merge()) // 🔥 Kullanıcıyı oluştur veya güncelle
+            .set(userCompanyData, com.google.firebase.firestore.SetOptions.merge())
             .addOnSuccessListener {
-                _createCompanyState.value = Resource.Success(companyId) // ✅ Şirket ID'yi Success içinde dön
+                _createCompanyState.value = Resource.Success(companyId)
             }
             .addOnFailureListener { e ->
                 _createCompanyState.value = Resource.Error("Şirket oluşturuldu ama kullanıcı eklenemedi! Hata: ${e.message}")

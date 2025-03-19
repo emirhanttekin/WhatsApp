@@ -24,7 +24,7 @@ class GroupMembersAdapter(private val ownerId: String) : RecyclerView.Adapter<Gr
             binding.tvMemberName.text = user.name
             binding.tvMemberRole.text = if (user.uid == ownerId) "Yönetici" else "Üye"
 
-            // Eğer kullanıcı OWNER ise kırmızı, değilse siyah yap
+
             val roleColor = if (user.uid == ownerId) Color.RED else Color.BLACK
             binding.tvMemberRole.setTextColor(roleColor)
 

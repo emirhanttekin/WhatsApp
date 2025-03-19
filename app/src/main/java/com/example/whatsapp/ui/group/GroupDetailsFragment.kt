@@ -34,14 +34,17 @@ class GroupDetailsFragment : Fragment(R.layout.fragment_group_details) {
 
         binding.rvGroupMembers.layoutManager = LinearLayoutManager(requireContext())
 
-        // **Grup bilgilerini getir**
+
         viewModel.fetchGroupDetails(groupId)
 
-        // **Grup detaylarını gözlemle**
         viewModel.groupDetailsLiveData.observe(viewLifecycleOwner) { groupDetails ->
-            val ownerId = groupDetails.ownerId // 👈 Grup sahibinin ID'si alınıyor.
-            adapter = GroupMembersAdapter(ownerId) // Adapter'e ownerId'yi geçiriyoruz.
+            Log.d("GroupDetailsFragment", "📌 Güncellenen Grup Bilgileri: $groupDetails")
+
+
+            adapter = GroupMembersAdapter(groupDetails.ownerId)
             binding.rvGroupMembers.adapter = adapter
+
+
             adapter.submitList(groupDetails.members)
         }
         checkIfUserIsOwner(groupId)
@@ -62,7 +65,7 @@ class GroupDetailsFragment : Fragment(R.layout.fragment_group_details) {
                     val ownerId = document.getString("ownerId") ?: ""
                     Log.d("ChatFragment", "👑 Grup Sahibi ID: $ownerId")
 
-                    // Eğer giriş yapan kullanıcı grup sahibi ise butonu göster
+
                     if (currentUserId == ownerId) {
                         binding.btnInviteMember.visibility = View.VISIBLE
                     } else {

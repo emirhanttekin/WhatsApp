@@ -13,7 +13,6 @@ class GroupAdapter(
 ) : RecyclerView.Adapter<GroupAdapter.GroupViewHolder>() {
 
     fun submitList(newList: List<Group>) {
-        println("Yeni Grup Listesi: $newList")  // 🔥 Listeyi logla
         groupList.clear()
         groupList.addAll(newList)
         notifyDataSetChanged()

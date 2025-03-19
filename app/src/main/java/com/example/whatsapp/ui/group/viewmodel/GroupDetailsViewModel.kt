@@ -25,15 +25,15 @@ class GroupDetailsViewModel @Inject constructor(
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val members = document.get("members") as? List<String> ?: emptyList()
-                    val ownerId = document.getString("ownerId") ?: ""  // 👈 Grup sahibi ID'si alınıyor.
+                    val ownerId = document.getString("ownerId") ?: ""
                     Log.d("GroupDetailsViewModel", "✅ Grup detayları alındı: Owner: $ownerId, Members: $members")
                     fetchUsers(ownerId, members) // Kullanıcı bilgilerini getir
                 } else {
-                    Log.e("GroupDetailsViewModel", "❌ Grup bulunamadı")
+                    Log.e("GroupDetailsViewModel", " Grup bulunamadı")
                 }
             }
             .addOnFailureListener { exception ->
-                Log.e("GroupDetailsViewModel", "🔥 Firestore Hatası: ${exception.localizedMessage}")
+                Log.e("GroupDetailsViewModel", " Firestore Hatası: ${exception.localizedMessage}")
             }
     }
 
@@ -44,15 +44,15 @@ class GroupDetailsViewModel @Inject constructor(
             firestore.collection("users").document(uid).get()
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
-                        val user = document.toObject(User::class.java)?.copy(uid = uid) // User nesnesine ID ekle
+                        val user = document.toObject(User::class.java)?.copy(uid = uid)
                         user?.let {
                             usersList.add(it)
-                            _groupDetailsLiveData.postValue(GroupDetails(ownerId, usersList)) // 👈 Yeni model kullanılıyor.
+                            _groupDetailsLiveData.postValue(GroupDetails(ownerId, usersList))
                         }
                     }
                 }
                 .addOnFailureListener { exception ->
-                    Log.e("GroupDetailsViewModel", "🔥 Kullanıcı getirme hatası: ${exception.localizedMessage}")
+                    Log.e("GroupDetailsViewModel", " Kullanıcı getirme hatası: ${exception.localizedMessage}")
                 }
         }
     }
