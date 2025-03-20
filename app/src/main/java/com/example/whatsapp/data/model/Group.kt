@@ -8,5 +8,10 @@ data class Group(
     val ownerId: String = "",
     val imageUrl: String = "",
     val description: String = "",
-    val createdAt: Long = System.currentTimeMillis()
-)
+    val createdAt: Long = System.currentTimeMillis(),
+
+    // 🔹 Kullanıcıya özel okunmamış mesaj sayısını Firestore'dan çekeceğiz
+    val unreadMessages: Map<String, Int> = emptyMap()
+) {
+    var unreadCount: Int = 0 // 🔹 Bu alan liste ekranında kaç unread mesaj varsa gösterecek
+}

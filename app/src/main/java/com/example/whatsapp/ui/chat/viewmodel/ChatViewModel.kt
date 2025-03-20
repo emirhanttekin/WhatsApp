@@ -14,6 +14,7 @@ import com.example.whatsapp.data.model.Message
 import com.example.whatsapp.utils.helper.NotificationHelper
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -73,19 +74,46 @@ class ChatViewModel @Inject constructor(
                     timestamp = timestamp
                 )
 
+                Log.d("ChatViewModel", "📤 Mesaj Gönderiliyor: ID = $messageId, İçerik = ${message.message}")
 
                 saveMessageToLocal(message)
 
-
                 messagesCollection.document(message.id).set(message)
+                    .addOnSuccessListener {
+                        Log.d("ChatViewModel", "✅ Firestore'a Mesaj Kaydedildi: $messageText")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("ChatViewModel", "❌ Firestore'a mesaj kaydetme hatası: ${e.message}")
+                    }
 
+                // 🔹 Tüm grup üyeleri için unread count'u artır
+                firestore.collection("groups").document(groupId)
+                    .get()
+                    .addOnSuccessListener { groupDoc ->
+                        val members = groupDoc.get("members") as? List<String> ?: emptyList()
+                        val updates = mutableMapOf<String, Any>()
+
+                        for (memberId in members) {
+                            if (memberId != senderId) { // Mesajı gönderenin unread count'u artmasın
+                                updates["unreadMessages.$memberId"] = FieldValue.increment(1)
+                            }
+                        }
+
+                        firestore.collection("groups").document(groupId).update(updates)
+                            .addOnSuccessListener {
+                                Log.d("ChatViewModel", "🔢 Unread Count Güncellendi: $updates")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("ChatViewModel", "❌ Unread count güncelleme hatası: ${e.message}")
+                            }
+                    }
 
                 SocketManager.sendMessage(groupId, messageText, senderId, senderName, senderProfileImageUrl, imageUrl)
-
-
             }
         }
     }
+
+
 
 
 

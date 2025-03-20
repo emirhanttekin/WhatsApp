@@ -54,7 +54,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         binding.tvGroupName.text = groupName
         setupRecyclerView()
         checkIfUserIsOwner(groupId)
-
+        markMessagesAsRead(groupId)
         binding.btnInvite.setOnClickListener {
             val action = ChatFragmentDirections.actionChatFragmentToInviteUserFragment(groupId, groupName)
             findNavController().navigate(action)
@@ -216,6 +216,12 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         viewModel.loadMessagesFromRoom(args.groupId)
         viewModel.loadMessagesFromFirestore(args.groupId)
         viewModel.isChatScreenVisible = true
+    }
+    fun markMessagesAsRead(groupId: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        val groupRef = FirebaseFirestore.getInstance().collection("groups").document(groupId)
+        groupRef.update("unreadMessages.$userId", 0)
     }
 
 

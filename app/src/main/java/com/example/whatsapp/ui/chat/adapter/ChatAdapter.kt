@@ -1,5 +1,7 @@
 package com.example.whatsapp.ui.chat.adapter
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +19,7 @@ import android.util.Log
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.firebase.Timestamp
 import javax.inject.Inject
+import kotlin.math.abs
 
 class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback()) {
 
@@ -107,11 +110,9 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
         private val binding = ItemMessageReceivedBinding.bind(itemView)
 
         fun bind(message: Message) {
-
             val isImageMessage = !message.imageUrl.isNullOrEmpty() && message.imageUrl != "null"
 
             if (isImageMessage) {
-
                 binding.tvMessageReceived.visibility = View.GONE
                 binding.imgMessageReceived.visibility = View.VISIBLE
 
@@ -122,11 +123,19 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(binding.imgMessageReceived)
             } else {
-
                 binding.tvMessageReceived.visibility = View.VISIBLE
                 binding.tvMessageReceived.text = message.message
                 binding.imgMessageReceived.visibility = View.GONE
             }
+
+            binding.tvSenderName.visibility = View.VISIBLE
+            binding.tvSenderName.text = message.senderName
+
+            Log.d("ChatAdapter", "Gönderen Adı: ${message.senderName}")
+
+            // 📌 Kullanıcıya özel renk ayarla
+            val userColor = getUserColor(message.senderId)
+            binding.messageBubble.backgroundTintList = ColorStateList.valueOf(userColor)
 
             binding.tvMessageTimeReceived.text = ChatAdapter.formatTimestamp(message.timestamp)
 
@@ -141,7 +150,29 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.imgProfileReceived)
         }
+
+        // 📌 Kullanıcıya özel renk atama fonksiyonu
+        private fun getUserColor(userId: String): Int {
+            val colors = listOf(
+                Color.parseColor("#FFCDD2"), // Açık Kırmızı
+                Color.parseColor("#F8BBD0"), // Açık Pembe
+                Color.parseColor("#E1BEE7"), // Açık Mor
+                Color.parseColor("#D1C4E9"), // Açık Lila
+                Color.parseColor("#BBDEFB"), // Açık Mavi
+                Color.parseColor("#B2DFDB"), // Açık Turkuaz
+                Color.parseColor("#C8E6C9"), // Açık Yeşil
+                Color.parseColor("#DCEDC8"), // Açık Lime
+                Color.parseColor("#FFF9C4"), // Açık Sarı
+                Color.parseColor("#FFECB3")  // Açık Turuncu
+            )
+
+            val hash = userId.hashCode()
+            val index = abs(hash) % colors.size
+            return colors[index]
+        }
     }
+
+
 
     class DiffCallback : DiffUtil.ItemCallback<Message>() {
         override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {

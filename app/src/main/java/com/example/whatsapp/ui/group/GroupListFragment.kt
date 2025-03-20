@@ -110,4 +110,5 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
 
         firestore.clearPersistence()
     }
+
 }

@@ -43,6 +43,8 @@ object AppModule {
         return context
     }
 
+
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): MessageDatabase {

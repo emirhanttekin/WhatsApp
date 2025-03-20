@@ -1,6 +1,7 @@
 package com.example.whatsapp.ui.group.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -22,9 +23,19 @@ class GroupAdapter(
     inner class GroupViewHolder(private val binding: ItemGroupBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(group: Group) {
             binding.tvGroupName.text = group.name
+
+            // 🔹 Unread mesaj varsa göster, yoksa gizle
+            if (group.unreadCount > 0) {
+                binding.tvUnreadMessageCount.visibility = View.VISIBLE
+                binding.tvUnreadMessageCount.text = group.unreadCount.toString()
+            } else {
+                binding.tvUnreadMessageCount.visibility = View.GONE
+            }
+
             binding.root.setOnClickListener { onItemClick(group) }
         }
     }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupViewHolder {
         val binding = ItemGroupBinding.inflate(LayoutInflater.from(parent.context), parent, false)

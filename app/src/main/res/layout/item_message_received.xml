@@ -15,42 +15,61 @@
         android:layout_marginEnd="8dp" />
 
     <LinearLayout
+        android:id="@+id/messageBubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_message_received"
+        android:backgroundTint="@android:color/holo_blue_light"
         android:padding="10dp"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:minWidth="50dp"
-        android:maxWidth="250dp"
-        android:baselineAligned="false">
-        <ImageView
-            android:id="@+id/imgMessageReceived"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:scaleType="centerCrop"
-            android:visibility="gone"/>
+        android:maxWidth="250dp">
 
+        <!-- 📌 Kullanıcı adı eklendi -->
         <TextView
-            android:id="@+id/tvMessageReceived"
+            android:id="@+id/tvSenderName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mesaj içeriği"
-            android:textSize="16sp"
-            android:fontFamily="@font/myfont"
-            android:textColor="@android:color/black"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"/>
-
-
-        <TextView
-            android:id="@+id/tvMessageTimeReceived"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="12:46"
-            android:textSize="12sp"
-            android:fontFamily="@font/myfont"
+            android:text="Gönderen Adı"
+            android:textSize="14sp"
+            android:textStyle="bold"
             android:textColor="@android:color/darker_gray"
-            android:gravity="bottom"
-            android:layout_marginTop="10dp" />
+            android:layout_marginBottom="4dp"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <ImageView
+                android:id="@+id/imgMessageReceived"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvMessageReceived"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mesaj içeriği"
+                android:textSize="16sp"
+                android:fontFamily="@font/myfont"
+                android:textColor="@android:color/black"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"/>
+
+            <TextView
+                android:id="@+id/tvMessageTimeReceived"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12:46"
+                android:textSize="12sp"
+                android:fontFamily="@font/myfont"
+                android:textColor="@android:color/darker_gray"
+                android:gravity="bottom"
+                android:layout_marginTop="10dp" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

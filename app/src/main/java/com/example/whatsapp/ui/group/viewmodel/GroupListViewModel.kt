@@ -1,5 +1,6 @@
 package com.example.whatsapp.ui.group.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,12 +9,14 @@ import com.example.whatsapp.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class GroupListViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
+
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
@@ -25,24 +28,42 @@ class GroupListViewModel @Inject constructor(
 
     private var allGroups: List<Group> = emptyList()
 
+    private var groupListener: ListenerRegistration? = null
+
     fun loadGroups() {
         _groupList.value = Resource.Loading()
-
         val userId = auth.currentUser?.uid ?: return
 
-        firestore.collection("groups")
+        groupListener?.remove() // Önceki listener'ı temizle
+
+        groupListener = firestore.collection("groups")
             .whereArrayContains("members", userId)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val groups = snapshot.documents.mapNotNull { it.toObject(Group::class.java) }
-                allGroups = groups
-                _groupList.value = Resource.Success(groups)
-                _filteredGroups.value = groups
-            }
-            .addOnFailureListener {
-                _groupList.value = Resource.Error("Gruplar yüklenemedi!")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    _groupList.value = Resource.Error("Gruplar yüklenemedi!")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val groups = snapshot.documents.mapNotNull { doc ->
+                        val group = doc.toObject(Group::class.java)
+                        val unreadMessages = doc.get("unreadMessages") as? Map<String, Long>
+                        group?.unreadCount = unreadMessages?.get(userId)?.toInt() ?: 0
+                        group
+                    }
+                    allGroups = groups
+                    _groupList.value = Resource.Success(groups)
+                    _filteredGroups.value = groups
+                }
             }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        groupListener?.remove() // ViewModel yok edildiğinde listener'ı kaldır
+    }
+
+
 
     fun filterGroups(query: String) {
         _filteredGroups.value = if (query.isEmpty()) {
