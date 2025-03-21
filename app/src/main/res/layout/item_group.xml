@@ -1,22 +1,20 @@
-<androidx.cardview.widget.CardView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="8dp"
-    android:layout_marginHorizontal="16dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
-    android:background="?attr/colorOutline">
+    android:orientation="vertical"
+    android:background="?attr/colorSurface"> <!-- Şeffaflığı kaldırıp arka plan verdik -->
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp"
-        android:gravity="center_vertical">
+        android:paddingVertical="12dp"
+        android:paddingHorizontal="16dp"
+        android:gravity="center_vertical"
+        android:background="?attr/colorSurface"> <!-- Burada da şeffaflığı kaldırdık -->
 
-        <!-- 🔹 Grup İkonu -->
+        <!-- 🔹 Grup İkonu (Yuvarlak) -->
         <ImageView
             android:id="@+id/ivGroupIcon"
             android:layout_width="48dp"
@@ -24,7 +22,8 @@
             android:src="@drawable/ic_group_placeholder"
             android:contentDescription="Grup İkonu"
             android:scaleType="centerCrop"
-            android:padding="8dp"/>
+            android:background="@drawable/bg_circle"
+            android:clipToOutline="true"/>
 
         <!-- 🔹 Grup Bilgileri -->
         <LinearLayout
@@ -39,7 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Grup Adı"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorOnSurface"/>
 
@@ -52,18 +51,29 @@
                 android:textColor="?attr/colorOnSurfaceVariant"/>
         </LinearLayout>
 
-        <!-- 🔹 Okunmamış Mesaj Sayısı (Yeni Eklenen Kısım) -->
+
         <TextView
             android:id="@+id/tvUnreadMessageCount"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:background="@drawable/bg_unread_count"
             android:text="1"
             android:textColor="@android:color/white"
-            android:textSize="12sp"
+            android:textSize="10sp"
             android:textStyle="bold"
             android:gravity="center"
             android:visibility="gone"
             android:layout_marginEnd="12dp"/>
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+
+    <!-- 🔹 Daha İnce Alt Çizgi -->
+    <!-- 🔹 Daha İnce ve Görünür Alt Çizgi -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.6dp"
+        android:background="?attr/colorOutline"
+        android:layout_marginHorizontal="16dp"
+        android:alpha="0.5"
+        android:layout_marginTop="4dp"/> <!-- Alt çizginin yukarı kaymasını önledik -->
+
+</LinearLayout>

@@ -97,6 +97,10 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             showImagePickerDialog()
         }
 
+        binding.btnBack.setOnClickListener {
+            findNavController().popBackStack()
+        }
+
     }
 
     private fun showImagePickerDialog() {

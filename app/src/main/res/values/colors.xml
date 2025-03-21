@@ -13,6 +13,9 @@
 
     <color name="my_dark_primary">#BB86FC</color> <!-- Koyu tema için ana renk -->
     <color name="my_dark_surface">#121212</color> <!-- Koyu tema için arka plan rengi -->
+    <color name="primary">#128C7E</color> <!-- WhatsApp Yeşili -->
+    <color name="semi_transparent_gray">#B3000000</color>
+    <color name="darker_gray">#B3B3B3</color>
 
 
 
