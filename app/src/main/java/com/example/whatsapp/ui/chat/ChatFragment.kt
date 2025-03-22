@@ -16,6 +16,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.whatsapp.R
 import com.example.whatsapp.databinding.FragmentChatBinding
 import com.example.whatsapp.ui.chat.adapter.ChatAdapter
@@ -35,6 +36,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private val args: ChatFragmentArgs by navArgs()
     private var isChatScreenVisible: Boolean = false
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+
 
     @Inject
     lateinit var chatAdapter: ChatAdapter
@@ -56,18 +58,21 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         checkIfUserIsOwner(groupId)
         markMessagesAsRead(groupId)
         binding.btnInvite.setOnClickListener {
-            val action = ChatFragmentDirections.actionChatFragmentToInviteUserFragment(groupId, groupName)
+            val action =
+                ChatFragmentDirections.actionChatFragmentToInviteUserFragment(groupId, groupName)
             findNavController().navigate(action)
         }
 
         binding.tvGroupName.setOnClickListener {
             val action = ChatFragmentDirections.actionChatFragmentToGroupDetailsFragment(
                 groupId = groupId,
-                groupName = groupName)
+                groupName = groupName
+            )
             findNavController().navigate(action)
 
         }
 
+        loadGroupProfileImage(groupId)
 
         viewModel.connectSocket()
 
@@ -75,6 +80,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             viewModel.joinGroup(userId, groupId)
         }
 
+        listenToOnlineUsers(args.groupId)
 
         viewModel.messagesLiveData.observe(viewLifecycleOwner) { messages ->
             chatAdapter.submitList(ArrayList(messages)) {
@@ -117,6 +123,26 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             .show()
     }
 
+    private fun loadGroupProfileImage(groupId: String) {
+        val groupRef = FirebaseFirestore.getInstance().collection("groups").document(groupId)
+
+        groupRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val imageUrl = document.getString("imageUrl")
+
+                if (!imageUrl.isNullOrEmpty()) {
+                    Glide.with(this)
+                        .load(imageUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_group_placeholder)
+                        .into(binding.imgGroupProfile)
+                }
+            }
+        }.addOnFailureListener {
+            Log.e("ChatFragment", "Grup resmi alınamadı: ${it.message}")
+        }
+    }
+
 
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
@@ -127,7 +153,10 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            requestPermissions(arrayOf(android.Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
+            requestPermissions(
+                arrayOf(android.Manifest.permission.CAMERA),
+                REQUEST_CAMERA_PERMISSION
+            )
         } else {
             cameraLauncher.launch(null)
         }
@@ -143,7 +172,8 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     }
 
     private fun uploadImageToFirebase(imageUri: Uri) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("chat_images/${System.currentTimeMillis()}.jpg")
+        val storageRef =
+            FirebaseStorage.getInstance().reference.child("chat_images/${System.currentTimeMillis()}.jpg")
 
         storageRef.putFile(imageUri)
             .addOnSuccessListener {
@@ -158,11 +188,15 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     }
 
 
-
     private fun convertBitmapToUri(bitmap: Bitmap): Uri {
         val bytes = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-        val path = MediaStore.Images.Media.insertImage(requireContext().contentResolver, bitmap, "Title", null)
+        val path = MediaStore.Images.Media.insertImage(
+            requireContext().contentResolver,
+            bitmap,
+            "Title",
+            null
+        )
         return Uri.parse(path)
     }
 
@@ -175,7 +209,11 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
     }
 
-    private fun sendMessage(groupId: String, messageText: String? = null, imageUrl: String? = null) {
+    private fun sendMessage(
+        groupId: String,
+        messageText: String? = null,
+        imageUrl: String? = null
+    ) {
         if (messageText.isNullOrEmpty() && imageUrl.isNullOrEmpty()) {
             Log.e("ChatFragment", "Gönderilecek mesaj veya resim yok!")
             return
@@ -221,6 +259,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         viewModel.loadMessagesFromFirestore(args.groupId)
         viewModel.isChatScreenVisible = true
     }
+
     fun markMessagesAsRead(groupId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
@@ -232,5 +271,53 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     override fun onPause() {
         super.onPause()
         viewModel.isChatScreenVisible = false
+        markUserOffline(args.groupId)
     }
+
+    private fun listenToOnlineUsers(groupId: String) {
+        val ref = FirebaseFirestore.getInstance()
+            .collection("groups")
+            .document(groupId)
+            .collection("onlineUsers")
+
+        ref.addSnapshotListener { snapshot, error ->
+            val onlineCount = snapshot?.size() ?: 0
+            binding.tvGroupInfo.text = "$onlineCount kişi • Online"
+        }
+
+    }
+
+    private fun markUserOffline(groupId: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        FirebaseFirestore.getInstance()
+            .collection("groups")
+            .document(groupId)
+            .collection("onlineUsers")
+            .document(userId)
+            .delete()
+    }
+
+
+    private fun markUserOnlineInFirestore() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        FirebaseFirestore.getInstance().collection("groups")
+            .whereArrayContains("members", userId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                snapshot.documents.forEach { doc ->
+                    val groupId = doc.id
+                    val onlineRef = FirebaseFirestore.getInstance()
+                        .collection("groups")
+                        .document(groupId)
+                        .collection("onlineUsers")
+                        .document(userId)
+
+
+                    onlineRef.set(mapOf("status" to true))
+                }
+            }
+    }
+
 }

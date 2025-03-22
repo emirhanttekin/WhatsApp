@@ -5,16 +5,25 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.whatsapp.R
 import com.example.whatsapp.data.model.User
 import com.example.whatsapp.databinding.ItemGroupMemberBinding
 
-class GroupMembersAdapter(private val ownerId: String) : RecyclerView.Adapter<GroupMembersAdapter.MemberViewHolder>() {
+class GroupMembersAdapter(private val ownerId: String) :
+    RecyclerView.Adapter<GroupMembersAdapter.MemberViewHolder>() {
 
     private val membersList = mutableListOf<User>()
+    private val onlineUserIds = mutableSetOf<String>() // ✅ Online olanları tutacağız
 
     fun submitList(newList: List<User>) {
         membersList.clear()
         membersList.addAll(newList)
+        notifyDataSetChanged()
+    }
+
+    fun updateOnlineUsers(onlineList: List<String>) {
+        onlineUserIds.clear()
+        onlineUserIds.addAll(onlineList)
         notifyDataSetChanged()
     }
 
@@ -24,15 +33,19 @@ class GroupMembersAdapter(private val ownerId: String) : RecyclerView.Adapter<Gr
             binding.tvMemberName.text = user.name
             binding.tvMemberRole.text = if (user.uid == ownerId) "Yönetici" else "Üye"
 
-
             val roleColor = if (user.uid == ownerId) Color.RED else Color.BLACK
             binding.tvMemberRole.setTextColor(roleColor)
 
             Glide.with(binding.root.context)
                 .load(user.profileImageUrl)
-                .circleCrop() // ✅ Oval hale getirme
+                .circleCrop()
                 .placeholder(com.example.whatsapp.R.drawable.ic_profile_placeholder)
                 .into(binding.ivMemberImage)
+
+            // ✅ Online durumu güncelle
+            val isOnline = onlineUserIds.contains(user.uid)
+            val statusDrawable = if (isOnline) R.drawable.bg_online_dot else R.drawable.bg_offline_dot
+            binding.viewOnlineStatus.setBackgroundResource(statusDrawable)
         }
     }
 
@@ -47,3 +60,4 @@ class GroupMembersAdapter(private val ownerId: String) : RecyclerView.Adapter<Gr
 
     override fun getItemCount(): Int = membersList.size
 }
+

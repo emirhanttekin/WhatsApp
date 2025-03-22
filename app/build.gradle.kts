@@ -60,6 +60,7 @@ dependencies {
     // ✅ Navigation
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    implementation ("androidx.lifecycle:lifecycle-process:2.6.2")
 
     // ✅ Hilt (Dependency Injection)
     implementation(libs.hilt.android.v2511)

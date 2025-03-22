@@ -20,7 +20,7 @@ class CreateGroupViewModel @Inject constructor(
     private val _createGroupState = MutableLiveData<Resource<Group>>()
     val createGroupState: LiveData<Resource<Group>> get() = _createGroupState
 
-    fun createGroup(companyId: String, groupName: String) {
+    fun createGroup(companyId: String, groupName: String, groupImageUrl: String) {
         _createGroupState.value = Resource.Loading()
 
         val groupId = UUID.randomUUID().toString()
@@ -30,6 +30,7 @@ class CreateGroupViewModel @Inject constructor(
             id = groupId,
             name = groupName,
             companyId = companyId,
+            imageUrl = groupImageUrl,
             members = listOf(userId),
             ownerId = userId
         )
@@ -43,4 +44,5 @@ class CreateGroupViewModel @Inject constructor(
                 _createGroupState.value = Resource.Error(e.message ?: "Grup oluşturulamadı!")
             }
     }
+
 }

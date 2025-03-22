@@ -26,34 +26,24 @@ class GroupDetailsViewModel @Inject constructor(
                 if (document.exists()) {
                     val members = document.get("members") as? List<String> ?: emptyList()
                     val ownerId = document.getString("ownerId") ?: ""
-                    Log.d("GroupDetailsViewModel", "✅ Grup detayları alındı: Owner: $ownerId, Members: $members")
-                    fetchUsers(ownerId, members) // Kullanıcı bilgilerini getir
-                } else {
-                    Log.e("GroupDetailsViewModel", " Grup bulunamadı")
+                    val imageUrl = document.getString("imageUrl")
+                    fetchUsers(ownerId, members, imageUrl)
                 }
-            }
-            .addOnFailureListener { exception ->
-                Log.e("GroupDetailsViewModel", " Firestore Hatası: ${exception.localizedMessage}")
             }
     }
 
-    private fun fetchUsers(ownerId: String, memberIds: List<String>) {
-        val usersList = mutableListOf<User>()
 
+    private fun fetchUsers(ownerId: String, memberIds: List<String>, imageUrl: String?) {
+        val usersList = mutableListOf<User>()
         for (uid in memberIds) {
             firestore.collection("users").document(uid).get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val user = document.toObject(User::class.java)?.copy(uid = uid)
-                        user?.let {
-                            usersList.add(it)
-                            _groupDetailsLiveData.postValue(GroupDetails(ownerId, usersList))
-                        }
+                .addOnSuccessListener { doc ->
+                    doc.toObject(User::class.java)?.copy(uid = uid)?.let {
+                        usersList.add(it)
+                        _groupDetailsLiveData.postValue(GroupDetails(ownerId, usersList, imageUrl))
                     }
-                }
-                .addOnFailureListener { exception ->
-                    Log.e("GroupDetailsViewModel", " Kullanıcı getirme hatası: ${exception.localizedMessage}")
                 }
         }
     }
+
 }

@@ -23,7 +23,7 @@ object SocketManager {
                 Log.d("Socket", " Socket.IO başarıyla bağlandı!")
 
 
-                setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, timestamp ->
+                setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, timestamp ,sendername->
                     Log.d(
                         "Socket",
                         " Yeni Mesaj Geldi -> Grup: $groupId, Gönderen: $senderId, Mesaj: $text, Resim: $imageUrl, Zaman: $timestamp"
@@ -90,7 +90,7 @@ object SocketManager {
 
 
     fun setOnMessageReceivedListener(
-        onMessageReceived: (String, String, String?, String, String?, Timestamp) -> Unit
+        onMessageReceived: (String, String, String?, String, String?, Timestamp, String) -> Unit
     ) {
         Log.d("Socket", "✅ setOnMessageReceivedListener çağrıldı")
 
@@ -103,7 +103,6 @@ object SocketManager {
                     return@on
                 }
 
-
                 val messageObj = try {
                     args[0] as? JSONObject ?: JSONObject(args[0].toString())
                 } catch (e: Exception) {
@@ -111,10 +110,10 @@ object SocketManager {
                     return@on
                 }
 
-
                 val groupId = messageObj.optString("groupId", "")
                 val text = messageObj.optString("message", null)
                 val senderId = messageObj.optString("senderId", "")
+                val senderName = messageObj.optString("senderName", "Bilinmeyen")
                 val senderProfileImageUrl = messageObj.optString("senderProfileImageUrl", "")
                 val imageUrl = messageObj.optString("imageUrl", null)
                 val timestampString = messageObj.optString("timestamp", "")
@@ -124,23 +123,17 @@ object SocketManager {
                     return@on
                 }
 
-
                 val timestamp = parseTimestamp(timestampString)
 
-                Log.d(
-                    "Socket",
-                    " Mesaj Alındı: Grup = $groupId, Mesaj = $text, Resim: $imageUrl, Gönderen = $senderId, Zaman = $timestamp"
-                )
+                Log.d("Socket", " Mesaj Alındı: Grup = $groupId, Mesaj = $text, Resim: $imageUrl, Gönderen = $senderId, İsim = $senderName, Zaman = $timestamp")
 
-
-                onMessageReceived(groupId, senderId, text, senderProfileImageUrl, imageUrl, timestamp)
+                onMessageReceived(groupId, senderId, text, senderProfileImageUrl, imageUrl, timestamp, senderName)
 
             } catch (e: Exception) {
                 Log.e("Socket", " receiveMessage eventinde hata: ${e.message}")
             }
         }
     }
-
 
 
 

@@ -51,7 +51,6 @@ class ChatViewModel @Inject constructor(
         SocketManager.joinGroup(userId, groupId)
     }
 
-
     fun sendMessage(groupId: String, messageText: String?, imageUrl: String?, senderId: String) {
         val userRef = firestore.collection("users").document(senderId)
 
@@ -86,7 +85,6 @@ class ChatViewModel @Inject constructor(
                         Log.e("ChatViewModel", "❌ Firestore'a mesaj kaydetme hatası: ${e.message}")
                     }
 
-                // 🔹 Tüm grup üyeleri için unread count'u artır
                 firestore.collection("groups").document(groupId)
                     .get()
                     .addOnSuccessListener { groupDoc ->
@@ -94,7 +92,7 @@ class ChatViewModel @Inject constructor(
                         val updates = mutableMapOf<String, Any>()
 
                         for (memberId in members) {
-                            if (memberId != senderId) { // Mesajı gönderenin unread count'u artmasın
+                            if (memberId != senderId) {
                                 updates["unreadMessages.$memberId"] = FieldValue.increment(1)
                             }
                         }
@@ -113,21 +111,11 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-
-
-
-
-
-
-
-
-
     fun listenForMessages() {
         Log.d("ChatViewModel", "⏳ Yeni mesajlar dinleniyor...")
 
-        SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, timestamp ->
+        SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, timestamp, senderName ->
             val messageId = "${groupId}_${timestamp.seconds}"
-
 
             if (messagesList.any { it.id == messageId }) {
                 Log.w("ChatViewModel", "⚠ Mesaj zaten var, tekrar eklenmeyecek!")
@@ -143,6 +131,7 @@ class ChatViewModel @Inject constructor(
             val message = Message(
                 id = messageId,
                 senderId = senderId,
+                senderName = senderName,
                 senderProfileImageUrl = senderProfileImageUrl,
                 groupId = groupId,
                 message = messageContent,
@@ -150,13 +139,9 @@ class ChatViewModel @Inject constructor(
                 timestamp = timestamp
             )
 
-
             saveMessageToLocal(message)
-
-
             messagesList.add(message)
             _messagesLiveData.postValue(ArrayList(messagesList))
-
 
             if (!isChatScreenVisible && isUserLoggedIn()) {
                 sendNotification(message)
@@ -165,9 +150,6 @@ class ChatViewModel @Inject constructor(
             Log.d("ChatViewModel", "✅ Yeni mesaj eklendi: $messageContent")
         }
     }
-
-
-
 
     fun loadMessagesFromFirestore(groupId: String) {
         Log.d("ChatViewModel", "📥 Firestore'dan mesajları çekiyoruz...")
@@ -181,7 +163,6 @@ class ChatViewModel @Inject constructor(
                 for (document in documents) {
                     val message = document.toObject(Message::class.java)
 
-
                     if (messagesList.any { it.id == message.id }) {
                         continue
                     }
@@ -189,28 +170,17 @@ class ChatViewModel @Inject constructor(
                     messages.add(message)
                 }
 
+                if (messages.isNotEmpty()) {
+                    messagesList.addAll(messages)
+                    _messagesLiveData.postValue(ArrayList(messagesList))
+                    saveMessagesToLocal(messages)
+                }
 
-                messagesList.addAll(messages)
-                _messagesLiveData.postValue(ArrayList(messagesList))
-
-                Log.d("ChatViewModel", "✅ Firestore'dan ${messages.size} mesaj yüklendi.")
+                Log.d("ChatViewModel", "✅ Firestore'dan ${messages.size} yeni mesaj yüklendi.")
             }
             .addOnFailureListener { e ->
                 Log.e("ChatViewModel", "❌ Firestore mesajlarını yüklerken hata: ${e.message}")
             }
-    }
-
-
-
-
-    private fun isUserLoggedIn(): Boolean {
-        return auth.currentUser != null
-    }
-
-    private fun isAppInForeground(): Boolean {
-        val activityManager = getApplication<Application>().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val appProcesses = activityManager.runningAppProcesses
-        return appProcesses?.any { it.processName == getApplication<Application>().packageName && it.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND } ?: false
     }
 
     fun loadMessagesFromRoom(groupId: String) {
@@ -220,7 +190,6 @@ class ChatViewModel @Inject constructor(
             Log.d("ChatViewModel", "📥 Room’dan çekilen mesajlar: ${localMessages.size} adet")
             localMessages.forEach { Log.d("ChatViewModel", "🔥 Room Mesajı: ${it.message}") }
 
-            messagesList.clear()
             messagesList.addAll(localMessages)
             _messagesLiveData.postValue(ArrayList(messagesList))
 
@@ -228,12 +197,9 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-
-
-
     private fun saveMessagesToLocal(messages: List<Message>) {
         viewModelScope.launch(Dispatchers.IO) {
-            messageDao.insertMessages(messages)  // 🔥 **Tek tek değil, topluca kaydediyoruz**
+            messageDao.insertMessages(messages)
             Log.d("ChatViewModel", "Room Database'e mesajlar kaydedildi -> ${messages.size} mesaj")
         }
     }
@@ -254,11 +220,9 @@ class ChatViewModel @Inject constructor(
             }
     }
 
-
     private fun sendNotification(message: Message) {
         val context = getApplication<Application>().applicationContext
 
-        // Grup adını almak için Firestore'dan veriyi çekiyoruz
         firestore.collection("groups").document(message.groupId)
             .get()
             .addOnSuccessListener { document ->
@@ -277,9 +241,6 @@ class ChatViewModel @Inject constructor(
                 Log.e("ChatViewModel", "❌ Bildirim için grup adı alınamadı: ${e.message}")
             }
     }
-
-
-
 
     private fun saveMessageToLocal(message: Message) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -307,5 +268,15 @@ class ChatViewModel @Inject constructor(
             .addOnFailureListener { e ->
                 Log.e("ChatViewModel", " Eski mesajları temizleme hatası: ${e.message}")
             }
+    }
+
+    private fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null
+    }
+
+    private fun isAppInForeground(): Boolean {
+        val activityManager = getApplication<Application>().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val appProcesses = activityManager.runningAppProcesses
+        return appProcesses?.any { it.processName == getApplication<Application>().packageName && it.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND } ?: false
     }
 }

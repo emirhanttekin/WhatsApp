@@ -5,6 +5,22 @@
     android:background="@color/semi_transparent_gray"
     android:layout_height="match_parent">
 
+    <!-- Grup Profil Fotoğrafı -->
+    <ImageView
+        android:id="@+id/imgGroupPhoto"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_group_placeholder"
+        android:background="@drawable/oval_background"
+        android:clipToOutline="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Grup Başlığı -->
     <TextView
         android:id="@+id/tvGroupName"
@@ -13,10 +29,10 @@
         android:text="Grup Adı"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:padding="16dp"
+        android:padding="8dp"
         android:fontFamily="@font/myfont"
         android:textColor="@color/white"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imgGroupPhoto"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 

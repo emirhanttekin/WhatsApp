@@ -133,7 +133,7 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
 
             Log.d("ChatAdapter", "Gönderen Adı: ${message.senderName}")
 
-            // 📌 Kullanıcıya özel renk ayarla
+
             val userColor = getUserColor(message.senderId)
             binding.messageBubble.backgroundTintList = ColorStateList.valueOf(userColor)
 

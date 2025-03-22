@@ -111,4 +111,32 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
         firestore.clearPersistence()
     }
 
+    override fun onResume() {
+        super.onResume()
+        markUserOnlineInFirestore()
+    }
+
+
+    private fun markUserOnlineInFirestore() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        FirebaseFirestore.getInstance().collection("groups")
+            .whereArrayContains("members", userId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                snapshot.documents.forEach { doc ->
+                    val groupId = doc.id
+                    val onlineRef = FirebaseFirestore.getInstance()
+                        .collection("groups")
+                        .document(groupId)
+                        .collection("onlineUsers")
+                        .document(userId)
+
+                    // Kullanıcıyı online olarak işaretle
+                    onlineRef.set(mapOf("status" to true))
+                }
+            }
+    }
+
+
 }
