@@ -51,16 +51,29 @@ class ChatViewModel @Inject constructor(
         SocketManager.joinGroup(userId, groupId)
     }
 
-    fun sendMessage(groupId: String, messageText: String?, imageUrl: String?, senderId: String) {
+    fun sendMessage(
+        groupId: String,
+        messageText: String?,
+        imageUrl: String?,
+        audioUrl: String?,
+        senderId: String
+    ) {
         val userRef = firestore.collection("users").document(senderId)
 
         userRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
                 val senderName = document.getString("name") ?: "Bilinmeyen"
                 val senderProfileImageUrl = document.getString("profileImageUrl") ?: ""
-
                 val timestamp = Timestamp.now()
                 val messageId = "${groupId}_${timestamp.seconds}"
+
+                // 🔍 Mesaj türünü doğru şekilde belirle
+                val messageContent = when {
+                    !messageText.isNullOrEmpty() -> messageText
+                    !audioUrl.isNullOrBlank() && audioUrl != "null" -> "[Sesli mesaj]"
+                    !imageUrl.isNullOrBlank() && imageUrl != "null" -> "[Görsel mesaj]"
+                    else -> ""
+                }
 
                 val message = Message(
                     id = messageId,
@@ -68,8 +81,9 @@ class ChatViewModel @Inject constructor(
                     senderName = senderName,
                     senderProfileImageUrl = senderProfileImageUrl,
                     groupId = groupId,
-                    message = messageText ?: "",
+                    message = messageContent,
                     imageUrl = imageUrl,
+                    audioUrl = audioUrl,
                     timestamp = timestamp
                 )
 
@@ -79,10 +93,10 @@ class ChatViewModel @Inject constructor(
 
                 messagesCollection.document(message.id).set(message)
                     .addOnSuccessListener {
-                        Log.d("ChatViewModel", "✅ Firestore'a Mesaj Kaydedildi: $messageText")
+                        Log.d("ChatViewModel", "✅ Firestore'a Mesaj Kaydedildi: $messageContent")
                     }
                     .addOnFailureListener { e ->
-                        Log.e("ChatViewModel", "❌ Firestore'a mesaj kaydetme hatası: ${e.message}")
+                        Log.e("ChatViewModel", "❌ Firestore mesaj hatası: ${e.message}")
                     }
 
                 firestore.collection("groups").document(groupId)
@@ -99,22 +113,34 @@ class ChatViewModel @Inject constructor(
 
                         firestore.collection("groups").document(groupId).update(updates)
                             .addOnSuccessListener {
-                                Log.d("ChatViewModel", "🔢 Unread Count Güncellendi: $updates")
+                                Log.d("ChatViewModel", "🔢 Unread count güncellendi: $updates")
                             }
                             .addOnFailureListener { e ->
-                                Log.e("ChatViewModel", "❌ Unread count güncelleme hatası: ${e.message}")
+                                Log.e("ChatViewModel", "❌ Unread count güncellenemedi: ${e.message}")
                             }
                     }
 
-                SocketManager.sendMessage(groupId, messageText, senderId, senderName, senderProfileImageUrl, imageUrl)
+                // ✅ Socket ile mesaj gönder
+                SocketManager.sendMessage(
+                    groupId = groupId,
+                    message = messageText,
+                    senderId = senderId,
+                    senderName = senderName,
+                    senderProfileImageUrl = senderProfileImageUrl,
+                    imageUrl = imageUrl,
+                    audioUrl = audioUrl
+                )
             }
         }
     }
 
+
+
+
     fun listenForMessages() {
         Log.d("ChatViewModel", "⏳ Yeni mesajlar dinleniyor...")
 
-        SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, timestamp, senderName ->
+        SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, audioUrl, timestamp, senderName ->
             val messageId = "${groupId}_${timestamp.seconds}"
 
             if (messagesList.any { it.id == messageId }) {
@@ -124,7 +150,8 @@ class ChatViewModel @Inject constructor(
 
             val messageContent = when {
                 !text.isNullOrEmpty() -> text
-                !imageUrl.isNullOrEmpty() -> "[Görsel mesaj]"
+                !audioUrl.isNullOrEmpty() && audioUrl != "null" -> "[Sesli mesaj]"
+                !imageUrl.isNullOrEmpty() && imageUrl != "null" -> "[Görsel mesaj]"
                 else -> return@setOnMessageReceivedListener
             }
 
@@ -136,6 +163,7 @@ class ChatViewModel @Inject constructor(
                 groupId = groupId,
                 message = messageContent,
                 imageUrl = imageUrl,
+                audioUrl = audioUrl,
                 timestamp = timestamp
             )
 
@@ -150,6 +178,8 @@ class ChatViewModel @Inject constructor(
             Log.d("ChatViewModel", "✅ Yeni mesaj eklendi: $messageContent")
         }
     }
+
+
 
     fun loadMessagesFromFirestore(groupId: String) {
         Log.d("ChatViewModel", "📥 Firestore'dan mesajları çekiyoruz...")

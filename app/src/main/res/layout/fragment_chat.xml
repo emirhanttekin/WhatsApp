@@ -94,7 +94,7 @@
         app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintBottom_toTopOf="@id/voiceRecorderLayout" />
 
-    <!-- Ses Kayıt Alanı (Voice Recorder) -->
+    <!-- Ses Kayıt Alanı -->
     <LinearLayout
         android:id="@+id/voiceRecorderLayout"
         android:layout_width="match_parent"
@@ -108,6 +108,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+
         <ImageView
             android:id="@+id/imgMicRecording"
             android:layout_width="24dp"
@@ -115,13 +116,14 @@
             android:src="@drawable/ic_mic"
             android:layout_marginEnd="12dp" />
 
-        <TextView
+        <Chronometer
             android:id="@+id/tvRecordingTimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="00:00"
             android:textColor="@android:color/white"
             android:textSize="16sp" />
+
 
         <TextView
             android:id="@+id/tvCancelHint"
@@ -132,6 +134,7 @@
             android:textSize="14sp"
             android:layout_marginStart="8dp" />
     </LinearLayout>
+
 
     <!-- Mesaj Gönderme Alanı -->
     <LinearLayout

@@ -2,6 +2,8 @@ package com.example.whatsapp.ui.chat.adapter
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.media.MediaPlayer
+import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,8 +18,10 @@ import com.example.whatsapp.databinding.ItemMessageSentBinding
 import com.google.firebase.auth.FirebaseAuth
 import android.text.format.DateFormat
 import android.util.Log
-import com.bumptech.glide.load.engine.DiskCacheStrategy
+import android.widget.ImageView
+import android.widget.TextView
 import com.google.firebase.Timestamp
+import java.io.IOException
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -57,7 +61,7 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val message = getItem(position)
-        Log.d("ChatAdapter", "📌 Güncellenen Mesaj: ${message.message}")
+        Log.d("ChatAdapter", "\uD83D\uDCCC Güncellenen Mesaj: ${message.message}")
 
         if (holder is SentMessageViewHolder) {
             holder.bind(message)
@@ -68,102 +72,225 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
 
     class SentMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemMessageSentBinding.bind(itemView)
+        private var mediaPlayer: MediaPlayer? = null
+        private var isPlaying = false
+        private var countdownTimer: CountDownTimer? = null
 
         fun bind(message: Message) {
+            val isAudioMessage = !message.audioUrl.isNullOrEmpty() && message.audioUrl != "null"
+            val isImageMessage = !message.imageUrl.isNullOrEmpty() && message.imageUrl != "null" && message.message != "[Sesli mesaj]"
 
-            val isImageMessage = !message.imageUrl.isNullOrEmpty() && message.imageUrl != "null"
+            when {
+                isAudioMessage -> {
+                    binding.tvMessageSent.visibility = View.GONE
+                    binding.imgMessageSent.visibility = View.GONE
+                    binding.voiceMessageLayoutSent.visibility = View.VISIBLE
+                    setupAudioPlayer(message.audioUrl ?: "", binding.tvDurationSent, binding.btnPlayPauseSent)
+                }
 
-            if (isImageMessage) {
+                isImageMessage -> {
+                    binding.tvMessageSent.visibility = View.GONE
+                    binding.imgMessageSent.visibility = View.VISIBLE
+                    binding.voiceMessageLayoutSent.visibility = View.GONE
 
-                binding.tvMessageSent.visibility = View.GONE
-                binding.imgMessageSent.visibility = View.VISIBLE
+                    Glide.with(itemView.context)
+                        .load(message.imageUrl)
+                        .into(binding.imgMessageSent)
+                }
 
-                Glide.with(itemView.context)
-                    .load(message.imageUrl)
-                    .placeholder(R.drawable.ic_profile_placeholder)
-                    .error(R.drawable.ic_profile_placeholder)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(binding.imgMessageSent)
-            } else {
-
-                binding.tvMessageSent.visibility = View.VISIBLE
-                binding.tvMessageSent.text = message.message
-                binding.imgMessageSent.visibility = View.GONE
+                else -> {
+                    binding.tvMessageSent.visibility = View.VISIBLE
+                    binding.tvMessageSent.text = message.message
+                    binding.imgMessageSent.visibility = View.GONE
+                    binding.voiceMessageLayoutSent.visibility = View.GONE
+                }
             }
 
             binding.tvMessageTimeSent.text = ChatAdapter.formatTimestamp(message.timestamp)
 
-            val profileImageUrl = if (!message.senderProfileImageUrl.isNullOrEmpty()) message.senderProfileImageUrl
-            else "https://example.com/default_avatar.png"
-
             Glide.with(itemView.context)
-                .load(profileImageUrl)
+                .load(message.senderProfileImageUrl)
                 .circleCrop()
-                .placeholder(R.drawable.ic_profile_placeholder)
-                .error(R.drawable.ic_profile_placeholder)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.imgProfileSent)
+        }
+
+        private fun setupAudioPlayer(audioUrl: String, durationView: View, playPauseBtn: View) {
+            val durationTextView = durationView as? TextView ?: return
+            val playPauseImage = playPauseBtn as? ImageView ?: return
+            var originalDuration = 0
+
+            try {
+                val player = MediaPlayer().apply {
+                    setDataSource(audioUrl)
+                    prepare()
+                }
+
+                originalDuration = player.duration
+                val minutes = originalDuration / 1000 / 60
+                val seconds = (originalDuration / 1000) % 60
+                durationTextView.text = String.format("%02d:%02d", minutes, seconds)
+
+                playPauseBtn.setOnClickListener {
+                    if (isPlaying) {
+                        mediaPlayer?.pause()
+                        isPlaying = false
+                        countdownTimer?.cancel()
+                        durationTextView.text = String.format("%02d:%02d", minutes, seconds)
+                        playPauseImage.setImageResource(R.drawable.ic_play)
+                    } else {
+                        mediaPlayer?.release()
+                        mediaPlayer = MediaPlayer().apply {
+                            setDataSource(audioUrl)
+                            prepare()
+                            start()
+                        }
+
+                        isPlaying = true
+                        playPauseImage.setImageResource(R.drawable.ic_pause)
+
+                        countdownTimer?.cancel()
+                        countdownTimer = object : CountDownTimer(originalDuration.toLong(), 1000) {
+                            override fun onTick(millisUntilFinished: Long) {
+                                val m = millisUntilFinished / 1000 / 60
+                                val s = (millisUntilFinished / 1000) % 60
+                                durationTextView.text = String.format("%02d:%02d", m, s)
+                            }
+
+                            override fun onFinish() {
+                                durationTextView.text = String.format("%02d:%02d", minutes, seconds)
+                                isPlaying = false
+                                mediaPlayer?.release()
+                                mediaPlayer = null
+                                playPauseImage.setImageResource(R.drawable.ic_play)
+                            }
+                        }.start()
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("ChatAdapter", "MediaPlayer hatası: ${e.message}")
+            }
         }
     }
 
+
+
     class ReceivedMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemMessageReceivedBinding.bind(itemView)
+        private var mediaPlayer: MediaPlayer? = null
+        private var isPlaying = false
+        private var countdownTimer: CountDownTimer? = null
 
         fun bind(message: Message) {
-            val isImageMessage = !message.imageUrl.isNullOrEmpty() && message.imageUrl != "null"
+            val isAudioMessage = !message.audioUrl.isNullOrEmpty() && message.audioUrl != "null"
+            val isImageMessage = !message.imageUrl.isNullOrEmpty() && message.imageUrl != "null" && message.message != "[Sesli mesaj]"
 
-            if (isImageMessage) {
-                binding.tvMessageReceived.visibility = View.GONE
-                binding.imgMessageReceived.visibility = View.VISIBLE
+            when {
+                isAudioMessage -> {
+                    binding.tvMessageReceived.visibility = View.GONE
+                    binding.imgMessageReceived.visibility = View.GONE
+                    binding.voiceMessageLayoutReceived.visibility = View.VISIBLE
+                    setupAudioPlayer(message.audioUrl ?: "", binding.tvDurationReceived, binding.btnPlayPauseReceived)
+                }
 
-                Glide.with(itemView.context)
-                    .load(message.imageUrl)
-                    .placeholder(R.drawable.ic_profile_placeholder)
-                    .error(R.drawable.ic_profile_placeholder)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(binding.imgMessageReceived)
-            } else {
-                binding.tvMessageReceived.visibility = View.VISIBLE
-                binding.tvMessageReceived.text = message.message
-                binding.imgMessageReceived.visibility = View.GONE
+                isImageMessage -> {
+                    binding.tvMessageReceived.visibility = View.GONE
+                    binding.imgMessageReceived.visibility = View.VISIBLE
+                    binding.voiceMessageLayoutReceived.visibility = View.GONE
+
+                    Glide.with(itemView.context)
+                        .load(message.imageUrl)
+                        .into(binding.imgMessageReceived)
+                }
+
+                else -> {
+                    binding.tvMessageReceived.visibility = View.VISIBLE
+                    binding.tvMessageReceived.text = message.message
+                    binding.imgMessageReceived.visibility = View.GONE
+                    binding.voiceMessageLayoutReceived.visibility = View.GONE
+                }
             }
 
-            binding.tvSenderName.visibility = View.VISIBLE
             binding.tvSenderName.text = message.senderName
+            binding.tvMessageTimeReceived.text = ChatAdapter.formatTimestamp(message.timestamp)
 
-            Log.d("ChatAdapter", "Gönderen Adı: ${message.senderName}")
-
+            Glide.with(itemView.context)
+                .load(message.senderProfileImageUrl)
+                .circleCrop()
+                .into(binding.imgProfileReceived)
 
             val userColor = getUserColor(message.senderId)
             binding.messageBubble.backgroundTintList = ColorStateList.valueOf(userColor)
-
-            binding.tvMessageTimeReceived.text = ChatAdapter.formatTimestamp(message.timestamp)
-
-            val profileImageUrl = if (!message.senderProfileImageUrl.isNullOrEmpty()) message.senderProfileImageUrl
-            else "https://example.com/default_avatar.png"
-
-            Glide.with(itemView.context)
-                .load(profileImageUrl)
-                .circleCrop()
-                .placeholder(R.drawable.ic_profile_placeholder)
-                .error(R.drawable.ic_profile_placeholder)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(binding.imgProfileReceived)
         }
 
-        // 📌 Kullanıcıya özel renk atama fonksiyonu
+        private fun setupAudioPlayer(audioUrl: String, durationView: View, playPauseBtn: View) {
+            val durationTextView = durationView as? TextView ?: return
+            val playPauseImage = playPauseBtn as? ImageView ?: return
+            var originalDuration = 0
+
+            try {
+                val player = MediaPlayer().apply {
+                    setDataSource(audioUrl)
+                    prepare()
+                }
+
+                originalDuration = player.duration
+                val minutes = originalDuration / 1000 / 60
+                val seconds = (originalDuration / 1000) % 60
+                durationTextView.text = String.format("%02d:%02d", minutes, seconds)
+
+                playPauseBtn.setOnClickListener {
+                    if (isPlaying) {
+                        mediaPlayer?.pause()
+                        isPlaying = false
+                        countdownTimer?.cancel()
+                        durationTextView.text = String.format("%02d:%02d", minutes, seconds)
+                        playPauseImage.setImageResource(R.drawable.ic_play)
+                    } else {
+                        mediaPlayer?.release()
+                        mediaPlayer = MediaPlayer().apply {
+                            setDataSource(audioUrl)
+                            prepare()
+                            start()
+                        }
+
+                        isPlaying = true
+                        playPauseImage.setImageResource(R.drawable.ic_pause)
+
+                        countdownTimer?.cancel()
+                        countdownTimer = object : CountDownTimer(originalDuration.toLong(), 1000) {
+                            override fun onTick(millisUntilFinished: Long) {
+                                val m = millisUntilFinished / 1000 / 60
+                                val s = (millisUntilFinished / 1000) % 60
+                                durationTextView.text = String.format("%02d:%02d", m, s)
+                            }
+
+                            override fun onFinish() {
+                                durationTextView.text = String.format("%02d:%02d", minutes, seconds)
+                                isPlaying = false
+                                mediaPlayer?.release()
+                                mediaPlayer = null
+                                playPauseImage.setImageResource(R.drawable.ic_play)
+                            }
+                        }.start()
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("ChatAdapter", "MediaPlayer hatası: ${e.message}")
+            }
+        }
+
         private fun getUserColor(userId: String): Int {
             val colors = listOf(
-                Color.parseColor("#FFCDD2"), // Açık Kırmızı
-                Color.parseColor("#F8BBD0"), // Açık Pembe
-                Color.parseColor("#E1BEE7"), // Açık Mor
-                Color.parseColor("#D1C4E9"), // Açık Lila
-                Color.parseColor("#BBDEFB"), // Açık Mavi
-                Color.parseColor("#B2DFDB"), // Açık Turkuaz
-                Color.parseColor("#C8E6C9"), // Açık Yeşil
-                Color.parseColor("#DCEDC8"), // Açık Lime
-                Color.parseColor("#FFF9C4"), // Açık Sarı
-                Color.parseColor("#FFECB3")  // Açık Turuncu
+                Color.parseColor("#FFCDD2"),
+                Color.parseColor("#F8BBD0"),
+                Color.parseColor("#E1BEE7"),
+                Color.parseColor("#D1C4E9"),
+                Color.parseColor("#BBDEFB"),
+                Color.parseColor("#B2DFDB"),
+                Color.parseColor("#C8E6C9"),
+                Color.parseColor("#DCEDC8"),
+                Color.parseColor("#FFF9C4"),
+                Color.parseColor("#FFECB3")
             )
 
             val hash = userId.hashCode()
@@ -171,8 +298,6 @@ class ChatAdapter @Inject constructor() : ListAdapter<Message, RecyclerView.View
             return colors[index]
         }
     }
-
-
 
     class DiffCallback : DiffUtil.ItemCallback<Message>() {
         override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {

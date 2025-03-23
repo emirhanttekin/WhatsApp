@@ -5,8 +5,10 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,11 +23,13 @@ import com.example.whatsapp.R
 import com.example.whatsapp.databinding.FragmentChatBinding
 import com.example.whatsapp.ui.chat.adapter.ChatAdapter
 import com.example.whatsapp.ui.chat.viewmodel.ChatViewModel
+import com.example.whatsapp.utils.voice.VoiceRecorderManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -36,6 +40,9 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private val args: ChatFragmentArgs by navArgs()
     private var isChatScreenVisible: Boolean = false
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+    private lateinit var voiceRecorderManager: VoiceRecorderManager
+    private var isRecording = false
+    private var recordingStartX = 0f
 
 
     @Inject
@@ -50,6 +57,10 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
         val groupId = args.groupId
         val groupName = args.groupName
+        voiceRecorderManager = VoiceRecorderManager(requireContext())
+
+        setupVoiceRecording()
+
 
         Log.d("ChatFragment", "✅ ChatFragment → Group ID: $groupId")
 
@@ -84,15 +95,13 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
         viewModel.messagesLiveData.observe(viewLifecycleOwner) { messages ->
             chatAdapter.submitList(ArrayList(messages)) {
-                binding.rvMessages.postDelayed({
+                binding.rvMessages.post {
                     if (messages.isNotEmpty()) {
-                        binding.rvMessages.smoothScrollToPosition(messages.size - 1)
+                        binding.rvMessages.scrollToPosition(messages.size - 1)
                     }
-                }, 200)
-                chatAdapter.notifyDataSetChanged()
+                }
             }
         }
-
 
         binding.btnSend.setOnClickListener {
             val messageText = binding.etMessage.text.toString().trim()
@@ -108,6 +117,15 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
 
     }
+    private val micPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            startVoiceRecording()
+        } else {
+            Toast.makeText(requireContext(), "Mikrofon izni reddedildi!", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     private fun showImagePickerDialog() {
         val options = arrayOf("📷 Fotoğraf Çek", "🖼️ Galeriden Seç", "❌ İptal")
@@ -122,6 +140,92 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             }
             .show()
     }
+
+    private fun setupVoiceRecording() {
+        val micButton = binding.btnMic
+
+        micButton.setOnTouchListener { view, motionEvent ->
+            when (motionEvent.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    recordingStartX = motionEvent.x
+                    startVoiceRecording()
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val diffX = motionEvent.x - recordingStartX
+                    if (diffX < -200) { // sola kaydırma
+                        cancelVoiceRecording()
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (isRecording) {
+                        stopVoiceRecording()
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun startVoiceRecording() {
+        if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+            micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            return
+        }
+
+        val audioPath = voiceRecorderManager.startRecording()
+        if (audioPath != null) {
+            isRecording = true
+            binding.voiceRecorderLayout.visibility = View.VISIBLE
+            binding.tvRecordingTimer.base = SystemClock.elapsedRealtime()
+            binding.tvRecordingTimer.start()
+            Log.d("ChatFragment", "🎙️ Ses kaydı başladı...")
+        } else {
+            Toast.makeText(requireContext(), "Kayıt başlatılamadı!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun stopVoiceRecording() {
+        val audioPath = voiceRecorderManager.stopRecording()
+        isRecording = false
+        binding.voiceRecorderLayout.visibility = View.GONE
+        binding.tvRecordingTimer.stop()
+
+        audioPath?.let {
+            uploadAudioToFirebase(it)
+        }
+    }
+
+    private fun uploadAudioToFirebase(filePath: String) {
+        val audioFile = File(filePath)
+        val uri = Uri.fromFile(audioFile)
+        val storageRef = FirebaseStorage.getInstance().reference
+            .child("chat_audios/${System.currentTimeMillis()}.m4a")
+
+        storageRef.putFile(uri)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                    sendMessage(args.groupId, audioUrl = downloadUrl.toString())
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Ses kaydı yüklenemedi!", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
+    private fun cancelVoiceRecording() {
+        voiceRecorderManager.cancelRecording()
+        isRecording = false
+        binding.voiceRecorderLayout.visibility = View.GONE
+        binding.tvRecordingTimer.stop()
+        Toast.makeText(requireContext(), "Kayıt iptal edildi", Toast.LENGTH_SHORT).show()
+    }
+
 
     private fun loadGroupProfileImage(groupId: String) {
         val groupRef = FirebaseFirestore.getInstance().collection("groups").document(groupId)
@@ -212,15 +316,26 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private fun sendMessage(
         groupId: String,
         messageText: String? = null,
-        imageUrl: String? = null
-    ) {
-        if (messageText.isNullOrEmpty() && imageUrl.isNullOrEmpty()) {
-            Log.e("ChatFragment", "Gönderilecek mesaj veya resim yok!")
+        imageUrl: String? = null,
+        audioUrl :String? = null,
+
+        ) {
+        if (messageText.isNullOrEmpty() && imageUrl.isNullOrEmpty() && audioUrl.isNullOrEmpty()) {
+            Log.e("ChatFragment", "Gönderilecek mesaj yok!")
             return
         }
 
+
+
         auth.currentUser?.uid?.let { userId ->
-            viewModel.sendMessage(groupId, messageText, imageUrl, userId)
+            viewModel.sendMessage(
+                groupId = groupId,
+                messageText = messageText,
+                imageUrl = imageUrl,
+                audioUrl = audioUrl,
+                senderId = userId
+            )
+
         }
 
         binding.etMessage.text?.clear()
@@ -255,10 +370,15 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     override fun onResume() {
         super.onResume()
         viewModel.connectSocket()
-        viewModel.loadMessagesFromRoom(args.groupId)
-        viewModel.loadMessagesFromFirestore(args.groupId)
+
+        if (viewModel.messagesLiveData.value.isNullOrEmpty()) {
+            viewModel.loadMessagesFromRoom(args.groupId)
+            viewModel.loadMessagesFromFirestore(args.groupId)
+        }
+
         viewModel.isChatScreenVisible = true
     }
+
 
     fun markMessagesAsRead(groupId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return

@@ -16,5 +16,7 @@ data class Message(
     val senderProfileImageUrl: String = "",
     val message: String? = "",
     val imageUrl: String? = null,
-    val timestamp: Timestamp = Timestamp.now()
+    val timestamp: Timestamp = Timestamp.now(),
+    val audioUrl: String? = null
+
 )

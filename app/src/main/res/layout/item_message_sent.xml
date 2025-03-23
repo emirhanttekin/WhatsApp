@@ -10,30 +10,68 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_message_sent"
         android:padding="10dp"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:minWidth="50dp"
-        android:maxWidth="250dp"
-        android:baselineAligned="false">
+        android:maxWidth="250dp">
 
-        <TextView
-            android:id="@+id/tvMessageSent"
+        <!-- 📌 İçerikler aynı alanda, sadece biri görünür olacak -->
+        <FrameLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Mesaj içeriği"
-            android:textSize="16sp"
-            android:textColor="@android:color/white"
-            android:fontFamily="@font/myfont"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:maxWidth="250dp"/>
+            android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/imgMessageSent"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:scaleType="centerCrop"
-            android:visibility="gone"/>
+            <!-- TEXT MESAJ -->
+            <TextView
+                android:id="@+id/tvMessageSent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mesaj içeriği"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:fontFamily="@font/myfont"
+                android:layout_marginEnd="4dp"
+                android:maxWidth="250dp"
+                android:visibility="gone" />
 
+            <!-- RESİM MESAJ -->
+            <ImageView
+                android:id="@+id/imgMessageSent"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone"/>
+
+            <!-- SESLİ MESAJ -->
+            <LinearLayout
+                android:id="@+id/voiceMessageLayoutSent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/btnPlayPauseSent"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_play"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.masoudss.lib.WaveformSeekBar
+                    android:id="@+id/waveformSent"
+                    android:layout_width="100dp"
+                    android:layout_height="24dp" />
+
+                <TextView
+                    android:id="@+id/tvDurationSent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:layout_marginStart="8dp"
+                    android:textColor="@android:color/white"/>
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- SAAT -->
         <TextView
             android:id="@+id/tvMessageTimeSent"
             android:layout_width="wrap_content"
@@ -42,10 +80,11 @@
             android:fontFamily="@font/myfont"
             android:textSize="12sp"
             android:textColor="@android:color/darker_gray"
-            android:gravity="bottom"
-            android:layout_marginTop="10dp" />
+            android:layout_marginTop="6dp"
+            android:layout_gravity="end"/>
     </LinearLayout>
 
+    <!-- PROFİL -->
     <ImageView
         android:id="@+id/imgProfileSent"
         android:layout_width="40dp"

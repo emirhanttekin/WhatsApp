@@ -25,7 +25,7 @@
         android:minWidth="50dp"
         android:maxWidth="250dp">
 
-        <!-- 📌 Kullanıcı adı eklendi -->
+        <!-- Gönderen adı -->
         <TextView
             android:id="@+id/tvSenderName"
             android:layout_width="wrap_content"
@@ -34,21 +34,52 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@android:color/darker_gray"
-            android:layout_marginBottom="4dp"/>
+            android:layout_marginBottom="4dp" />
 
-        <LinearLayout
+        <!-- ✨ Sadece biri görünür olacak: Ses / Görsel / Mesaj -->
+        <FrameLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:baselineAligned="false">
+            android:layout_height="wrap_content">
 
+            <!-- RESİM MESAJ -->
             <ImageView
                 android:id="@+id/imgMessageReceived"
                 android:layout_width="200dp"
                 android:layout_height="200dp"
                 android:scaleType="centerCrop"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
+            <!-- SESLİ MESAJ -->
+            <LinearLayout
+                android:id="@+id/voiceMessageLayoutReceived"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/btnPlayPauseReceived"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_play"
+                    android:layout_marginEnd="8dp" />
+
+                <com.masoudss.lib.WaveformSeekBar
+                    android:id="@+id/waveformReceived"
+                    android:layout_width="100dp"
+                    android:layout_height="24dp" />
+
+                <TextView
+                    android:id="@+id/tvDurationReceived"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:layout_marginStart="8dp"
+                    android:textColor="@android:color/black" />
+            </LinearLayout>
+
+            <!-- METİN MESAJ -->
             <TextView
                 android:id="@+id/tvMessageReceived"
                 android:layout_width="wrap_content"
@@ -57,19 +88,21 @@
                 android:textSize="16sp"
                 android:fontFamily="@font/myfont"
                 android:textColor="@android:color/black"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"/>
+                android:layout_marginEnd="4dp"
+                android:maxWidth="250dp"
+                android:visibility="gone" />
+        </FrameLayout>
 
-            <TextView
-                android:id="@+id/tvMessageTimeReceived"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="12:46"
-                android:textSize="12sp"
-                android:fontFamily="@font/myfont"
-                android:textColor="@android:color/darker_gray"
-                android:gravity="bottom"
-                android:layout_marginTop="10dp" />
-        </LinearLayout>
+        <!-- Saat -->
+        <TextView
+            android:id="@+id/tvMessageTimeReceived"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12:46"
+            android:textSize="12sp"
+            android:fontFamily="@font/myfont"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="bottom"
+            android:layout_marginTop="6dp" />
     </LinearLayout>
 </LinearLayout>

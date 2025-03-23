@@ -74,7 +74,7 @@ dependencies {
     // ✅ Glide (Resim Yükleme)
     implementation(libs.glide.v4151)
     kapt("com.github.bumptech.glide:compiler:$glide_version")
-
+    implementation  ("com.github.massoudss:waveformSeekBar:5.0.2")
     // ✅ UCrop (Resim Kırpma)
     implementation(libs.ucropVersion)
     implementation (libs.androidx.cardview)
