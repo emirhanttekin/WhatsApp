@@ -369,10 +369,10 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
     override fun onResume() {
         super.onResume()
-        viewModel.connectSocket()
+
 
         if (viewModel.messagesLiveData.value.isNullOrEmpty()) {
-            viewModel.loadMessagesFromRoom(args.groupId)
+
             viewModel.loadMessagesFromFirestore(args.groupId)
         }
 

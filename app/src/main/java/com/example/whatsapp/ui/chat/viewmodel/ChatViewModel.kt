@@ -120,7 +120,7 @@ class ChatViewModel @Inject constructor(
                             }
                     }
 
-                // ✅ Socket ile mesaj gönder
+
                 SocketManager.sendMessage(
                     groupId = groupId,
                     message = messageText,
@@ -130,6 +130,12 @@ class ChatViewModel @Inject constructor(
                     imageUrl = imageUrl,
                     audioUrl = audioUrl
                 )
+
+                if (messagesList.any { it.id == messageId }) {
+                    Log.w("ChatViewModel", "⚠ Mesaj zaten var, tekrar eklenmeyecek!")
+                    return@addOnSuccessListener
+                }
+
             }
         }
     }
@@ -227,6 +233,18 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    fun clearActiveGroup() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        FirebaseFirestore.getInstance().collection("users").document(userId)
+            .update("activeGroupId", null)
+    }
+
+    fun markActiveGroup(groupId: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        FirebaseFirestore.getInstance().collection("users").document(userId)
+            .update("activeGroupId", groupId)
+    }
+
     private fun saveMessagesToLocal(messages: List<Message>) {
         viewModelScope.launch(Dispatchers.IO) {
             messageDao.insertMessages(messages)
@@ -252,25 +270,45 @@ class ChatViewModel @Inject constructor(
 
     private fun sendNotification(message: Message) {
         val context = getApplication<Application>().applicationContext
+        val userId = auth.currentUser?.uid ?: return
 
-        firestore.collection("groups").document(message.groupId)
+
+        firestore.collection("users").document(userId)
             .get()
-            .addOnSuccessListener { document ->
-                val groupName = document.getString("groupName") ?: "Bilinmeyen Grup"
+            .addOnSuccessListener { userDoc ->
+                val activeGroupId = userDoc.getString("activeGroupId")
 
-                NotificationHelper.showNotification(
-                    context,
-                    groupName = groupName,
-                    senderName = message.senderName,
-                    message = message.message ?: ""
-                )
+                // 2. Eğer kullanıcı zaten bu gruptaysa, bildirim gönderme
+                if (activeGroupId == message.groupId) {
+                    Log.d("ChatViewModel", "📵 Bildirim gönderilmedi. Kullanıcı şu an bu grupta: $activeGroupId")
+                    return@addOnSuccessListener
+                }
 
-                Log.d("ChatViewModel", "🔔 Bildirim gönderildi: ${message.message}")
+                // 3. Grup adı alınarak bildirim gönderiliyor
+                firestore.collection("groups").document(message.groupId)
+                    .get()
+                    .addOnSuccessListener { groupDoc ->
+                        val groupName = groupDoc.getString("groupName") ?: "Bilinmeyen Grup"
+
+                        NotificationHelper.showNotification(
+                            context,
+                            groupName = groupName,
+                            senderName = message.senderName,
+                            message = message.message ?: ""
+                        )
+
+                        Log.d("ChatViewModel", "🔔 Bildirim gönderildi: ${message.message}")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("ChatViewModel", "❌ Bildirim için grup adı alınamadı: ${e.message}")
+                    }
             }
             .addOnFailureListener { e ->
-                Log.e("ChatViewModel", "❌ Bildirim için grup adı alınamadı: ${e.message}")
+                Log.e("ChatViewModel", "❌ Kullanıcının aktif grubu alınamadı: ${e.message}")
             }
     }
+
+
 
     private fun saveMessageToLocal(message: Message) {
         viewModelScope.launch(Dispatchers.IO) {
