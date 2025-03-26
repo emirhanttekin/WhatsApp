@@ -83,10 +83,12 @@ dependencies {
     implementation(libs.androidx.appcompat.v161)
     implementation(libs.androidx.activity.ktx.v190)
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-
+    implementation("com.github.lincollincol:Amplituda:2.3.0")
     implementation (libs.material.v1110) // En son sürüm
     // ✅ Socket.IO (Gerçek Zamanlı Bağlantı)
     implementation(libs.socket.socket.io.client)
+    implementation("com.vanniktech:emoji:0.15.0")
+    implementation ("com.vanniktech:emoji-google:0.15.0")
 
     // ✅ Testler
     testImplementation(libs.junit)

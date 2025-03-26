@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -27,6 +28,7 @@ import com.example.whatsapp.utils.voice.VoiceRecorderManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.vanniktech.emoji.EmojiPopup
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -50,6 +52,12 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
     private val REQUEST_CAMERA_PERMISSION = 1001
     private var imageUri: Uri? = null
+    private val documentPickerLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                uploadDocumentToFirebase(it)
+            }
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -60,9 +68,13 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         voiceRecorderManager = VoiceRecorderManager(requireContext())
 
         setupVoiceRecording()
-
+        setupEmojiPopup()
+        setupSendButtonVisibility()
 
         Log.d("ChatFragment", "✅ ChatFragment → Group ID: $groupId")
+        binding.btnAttachment.setOnClickListener {
+            openDocumentPicker()
+        }
 
         binding.tvGroupName.text = groupName
         setupRecyclerView()
@@ -103,10 +115,6 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             }
         }
 
-        binding.btnSend.setOnClickListener {
-            val messageText = binding.etMessage.text.toString().trim()
-            sendMessage(args.groupId, messageText)
-        }
 
         binding.btnCamera.setOnClickListener {
             showImagePickerDialog()
@@ -117,6 +125,23 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
 
     }
+    private fun openDocumentPicker() {
+        documentPickerLauncher.launch("*/*") // tüm dosya türlerini destekler
+    }
+
+
+    private fun setupEmojiPopup() {
+        val emojiPopup = EmojiPopup(
+            rootView = binding.root,
+            editText = binding.etMessage
+        )
+
+        // Emoji toggle
+        binding.btnEmoji.setOnClickListener {
+            emojiPopup.toggle()
+        }
+    }
+
     private val micPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -139,6 +164,22 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                 }
             }
             .show()
+    }
+    private fun uploadDocumentToFirebase(fileUri: Uri) {
+        val fileName = System.currentTimeMillis().toString()
+        val fileRef = FirebaseStorage.getInstance().reference
+            .child("chat_files/$fileName")
+
+        fileRef.putFile(fileUri)
+            .addOnSuccessListener {
+                fileRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                    sendMessage(args.groupId, fileUrl = downloadUrl.toString())
+                    Toast.makeText(requireContext(), "📁 Belge gönderildi", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "❌ Belge yüklenemedi", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun setupVoiceRecording() {
@@ -199,6 +240,38 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             uploadAudioToFirebase(it)
         }
     }
+
+    private fun setupSendButtonVisibility() {
+        binding.etMessage.addTextChangedListener {
+            val text = it?.toString()?.trim()
+
+            if (text.isNullOrEmpty()) {
+                // Yazı yoksa: Mikrofonu göster
+                binding.btnMic.setImageResource(R.drawable.ic_mic)
+                binding.btnMic.contentDescription = "Sesli Mesaj"
+
+                // Touch listener'ı tekrar ekle (basılı tutarak kayıt için)
+                setupVoiceRecording()
+
+            } else {
+                // Yazı varsa: Gönder ikonunu göster
+                binding.btnMic.setImageResource(R.drawable.ic_send)
+                binding.btnMic.contentDescription = "Mesaj Gönder"
+
+                // Ses kaydı için olan touch listener'ı devre dışı bırak
+                binding.btnMic.setOnTouchListener(null)
+
+                // Bu durumda normal tıklamayla mesaj gönder
+                binding.btnMic.setOnClickListener {
+                    val messageText = binding.etMessage.text.toString().trim()
+                    if (messageText.isNotEmpty()) {
+                        sendMessage(args.groupId, messageText)
+                    }
+                }
+            }
+        }
+    }
+
 
     private fun uploadAudioToFirebase(filePath: String) {
         val audioFile = File(filePath)
@@ -318,9 +391,10 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         messageText: String? = null,
         imageUrl: String? = null,
         audioUrl :String? = null,
+        fileUrl: String? = null
 
         ) {
-        if (messageText.isNullOrEmpty() && imageUrl.isNullOrEmpty() && audioUrl.isNullOrEmpty()) {
+        if (messageText.isNullOrEmpty() && imageUrl.isNullOrEmpty() && audioUrl.isNullOrEmpty() && fileUrl.isNullOrEmpty()) {
             Log.e("ChatFragment", "Gönderilecek mesaj yok!")
             return
         }
@@ -333,6 +407,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                 messageText = messageText,
                 imageUrl = imageUrl,
                 audioUrl = audioUrl,
+                fileUrl = fileUrl, // ✅ eklendi
                 senderId = userId
             )
 

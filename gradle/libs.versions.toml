@@ -2,6 +2,7 @@
 activityKtx = "1.10.1"
 activityKtxVersion = "1.9.0"
 agp = "8.5.0"
+amplituda = "2.2.1"
 androidxCoreKtx = "1.12.0"
 androidxJunit = "1.1.5"
 appcompatVersion = "1.6.1"
@@ -47,6 +48,7 @@ ucrop = "2.2.6"
 ucropVersion = "2.2.8"
 
 [libraries]
+amplituda = { module = "com.github.lincollincol:Amplituda", version.ref = "amplituda" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 androidx-activity-ktx-v190 = { module = "androidx.activity:activity-ktx", version.ref = "activityKtxVersion" }
 androidx-appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }

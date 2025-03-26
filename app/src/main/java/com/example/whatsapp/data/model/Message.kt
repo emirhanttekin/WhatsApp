@@ -17,6 +17,8 @@ data class Message(
     val message: String? = "",
     val imageUrl: String? = null,
     val timestamp: Timestamp = Timestamp.now(),
-    val audioUrl: String? = null
+    val audioUrl: String? = null,
+    val fileUrl: String? = null
+
 
 )

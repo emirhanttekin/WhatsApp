@@ -91,6 +91,48 @@
                 android:layout_marginEnd="4dp"
                 android:maxWidth="250dp"
                 android:visibility="gone" />
+
+            <!-- DOSYA MESAJ -->
+            <LinearLayout
+                android:id="@+id/fileMessageLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="8dp"
+                android:background="@drawable/ic_attachment"
+                android:layout_marginTop="4dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/imgFileIcon"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_file"
+                    android:layout_marginEnd="8dp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvFileName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="dosya.pdf"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
+                        android:id="@+id/tvFileInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PDF • 230 KB"
+                        android:textColor="@android:color/darker_gray"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
         </FrameLayout>
 
         <!-- Saat -->
@@ -105,4 +147,6 @@
             android:gravity="bottom"
             android:layout_marginTop="6dp" />
     </LinearLayout>
+
+
 </LinearLayout>

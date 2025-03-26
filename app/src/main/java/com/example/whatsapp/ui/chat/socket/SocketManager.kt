@@ -22,12 +22,13 @@ object SocketManager {
             socket?.on(Socket.EVENT_CONNECT) {
                 Log.d("Socket", "✅ Socket.IO başarıyla bağlandı!")
 
-                setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, audioUrl, timestamp, senderName ->
+                setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, audioUrl, fileUrl, timestamp, senderName ->
                     Log.d(
                         "Socket",
-                        "📩 Yeni Mesaj Geldi -> Grup: $groupId, Gönderen: $senderId, Mesaj: $text, Resim: $imageUrl, Ses: $audioUrl, Zaman: $timestamp"
+                        "📩 Yeni Mesaj Geldi -> Grup: $groupId, Gönderen: $senderId, Mesaj: $text, Resim: $imageUrl, Ses: $audioUrl, Dosya: $fileUrl, Zaman: $timestamp"
                     )
                 }
+
             }
 
             socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
@@ -60,8 +61,10 @@ object SocketManager {
         senderName: String,
         senderProfileImageUrl: String,
         imageUrl: String?,
-        audioUrl: String?
-    ) {
+        audioUrl: String?,
+        fileUrl: String? // ✅ Yeni eklendi
+    )
+    {
         if (message.isNullOrEmpty() && imageUrl.isNullOrEmpty() && audioUrl.isNullOrEmpty()) {
             Log.e("Socket", "❌ Gönderilecek mesaj, resim veya ses yok, işlem iptal edildi.")
             return
@@ -75,6 +78,7 @@ object SocketManager {
             message?.let { put("message", it) }
             imageUrl?.let { put("imageUrl", it) }
             audioUrl?.let { put("audioUrl", it) }
+            fileUrl?.let { put("fileUrl", it) } // ✅ Yeni eklendi
         }
 
         socket?.emit("sendMessage", data)
@@ -86,7 +90,17 @@ object SocketManager {
     }
 
     fun setOnMessageReceivedListener(
-        onMessageReceived: (groupId: String, senderId: String, message: String?, profileImageUrl: String, imageUrl: String?, audioUrl: String?, timestamp: Timestamp, senderName: String) -> Unit
+        onMessageReceived: (
+            groupId: String,
+            senderId: String,
+            message: String?,
+            profileImageUrl: String,
+            imageUrl: String?,
+            audioUrl: String?,
+            fileUrl: String?, // ✅ fileUrl parametresi eklendi
+            timestamp: Timestamp,
+            senderName: String
+        ) -> Unit
     ) {
         Log.d("Socket", "✅ setOnMessageReceivedListener çağrıldı")
 
@@ -113,6 +127,7 @@ object SocketManager {
                 val senderProfileImageUrl = messageObj.optString("senderProfileImageUrl", "")
                 val imageUrl = messageObj.optString("imageUrl", null)
                 val audioUrl = messageObj.optString("audioUrl", null)
+                val fileUrl = messageObj.optString("fileUrl", null) // ✅ fileUrl çekildi
                 val timestampString = messageObj.optString("timestamp", "")
 
                 if (groupId.isEmpty() || senderId.isEmpty()) {
@@ -124,7 +139,7 @@ object SocketManager {
 
                 Log.d(
                     "Socket",
-                    "📨 Mesaj Alındı: Grup = $groupId, Mesaj = $message, Resim = $imageUrl, Ses = $audioUrl, Gönderen = $senderId, İsim = $senderName, Zaman = $timestamp"
+                    "📨 Mesaj Alındı: Grup = $groupId, Mesaj = $message, Resim = $imageUrl, Ses = $audioUrl, Dosya = $fileUrl, Gönderen = $senderId, İsim = $senderName, Zaman = $timestamp"
                 )
 
                 onMessageReceived(
@@ -134,6 +149,7 @@ object SocketManager {
                     senderProfileImageUrl,
                     imageUrl,
                     audioUrl,
+                    fileUrl, // ✅ Callback'e eklendi
                     timestamp,
                     senderName
                 )

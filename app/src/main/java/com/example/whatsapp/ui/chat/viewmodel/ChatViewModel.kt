@@ -56,8 +56,10 @@ class ChatViewModel @Inject constructor(
         messageText: String?,
         imageUrl: String?,
         audioUrl: String?,
+        fileUrl: String?, // ✅ eklendi
         senderId: String
-    ) {
+    )
+    {
         val userRef = firestore.collection("users").document(senderId)
 
         userRef.get().addOnSuccessListener { document ->
@@ -67,11 +69,12 @@ class ChatViewModel @Inject constructor(
                 val timestamp = Timestamp.now()
                 val messageId = "${groupId}_${timestamp.seconds}"
 
-                // 🔍 Mesaj türünü doğru şekilde belirle
+
                 val messageContent = when {
                     !messageText.isNullOrEmpty() -> messageText
                     !audioUrl.isNullOrBlank() && audioUrl != "null" -> "[Sesli mesaj]"
                     !imageUrl.isNullOrBlank() && imageUrl != "null" -> "[Görsel mesaj]"
+                    !fileUrl.isNullOrBlank() && fileUrl != "null" -> "[Dosya]"
                     else -> ""
                 }
 
@@ -84,19 +87,21 @@ class ChatViewModel @Inject constructor(
                     message = messageContent,
                     imageUrl = imageUrl,
                     audioUrl = audioUrl,
+                    fileUrl = fileUrl,
                     timestamp = timestamp
                 )
 
-                Log.d("ChatViewModel", "📤 Mesaj Gönderiliyor: ID = $messageId, İçerik = ${message.message}")
+
+                Log.d("ChatViewModel", " Mesaj Gönderiliyor: ID = $messageId, İçerik = ${message.message}")
 
                 saveMessageToLocal(message)
 
                 messagesCollection.document(message.id).set(message)
                     .addOnSuccessListener {
-                        Log.d("ChatViewModel", "✅ Firestore'a Mesaj Kaydedildi: $messageContent")
+                        Log.d("ChatViewModel", "Firestore'a Mesaj Kaydedildi: $messageContent")
                     }
                     .addOnFailureListener { e ->
-                        Log.e("ChatViewModel", "❌ Firestore mesaj hatası: ${e.message}")
+                        Log.e("ChatViewModel", " Firestore mesaj hatası: ${e.message}")
                     }
 
                 firestore.collection("groups").document(groupId)
@@ -113,10 +118,10 @@ class ChatViewModel @Inject constructor(
 
                         firestore.collection("groups").document(groupId).update(updates)
                             .addOnSuccessListener {
-                                Log.d("ChatViewModel", "🔢 Unread count güncellendi: $updates")
+                                Log.d("ChatViewModel", " Unread count güncellendi: $updates")
                             }
                             .addOnFailureListener { e ->
-                                Log.e("ChatViewModel", "❌ Unread count güncellenemedi: ${e.message}")
+                                Log.e("ChatViewModel", " Unread count güncellenemedi: ${e.message}")
                             }
                     }
 
@@ -128,8 +133,10 @@ class ChatViewModel @Inject constructor(
                     senderName = senderName,
                     senderProfileImageUrl = senderProfileImageUrl,
                     imageUrl = imageUrl,
-                    audioUrl = audioUrl
+                    audioUrl = audioUrl,
+                    fileUrl = fileUrl // ✅ burası eklendi
                 )
+
 
                 if (messagesList.any { it.id == messageId }) {
                     Log.w("ChatViewModel", "⚠ Mesaj zaten var, tekrar eklenmeyecek!")
@@ -144,10 +151,11 @@ class ChatViewModel @Inject constructor(
 
 
     fun listenForMessages() {
-        Log.d("ChatViewModel", "⏳ Yeni mesajlar dinleniyor...")
+        Log.d("ChatViewModel", " Yeni mesajlar dinleniyor...")
 
-        SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, audioUrl, timestamp, senderName ->
-            val messageId = "${groupId}_${timestamp.seconds}"
+        SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, audioUrl, fileUrl, timestamp, senderName ->
+
+        val messageId = "${groupId}_${timestamp.seconds}"
 
             if (messagesList.any { it.id == messageId }) {
                 Log.w("ChatViewModel", "⚠ Mesaj zaten var, tekrar eklenmeyecek!")
@@ -158,8 +166,11 @@ class ChatViewModel @Inject constructor(
                 !text.isNullOrEmpty() -> text
                 !audioUrl.isNullOrEmpty() && audioUrl != "null" -> "[Sesli mesaj]"
                 !imageUrl.isNullOrEmpty() && imageUrl != "null" -> "[Görsel mesaj]"
+                !fileUrl.isNullOrEmpty() && fileUrl != "null" -> "[Dosya]" // ✅ bunu ekle
                 else -> return@setOnMessageReceivedListener
             }
+
+
 
             val message = Message(
                 id = messageId,
@@ -170,8 +181,10 @@ class ChatViewModel @Inject constructor(
                 message = messageContent,
                 imageUrl = imageUrl,
                 audioUrl = audioUrl,
+                fileUrl = fileUrl, // ✅ burası yeni
                 timestamp = timestamp
             )
+
 
             saveMessageToLocal(message)
             messagesList.add(message)
@@ -181,14 +194,14 @@ class ChatViewModel @Inject constructor(
                 sendNotification(message)
             }
 
-            Log.d("ChatViewModel", "✅ Yeni mesaj eklendi: $messageContent")
+            Log.d("ChatViewModel", " Yeni mesaj eklendi: $messageContent")
         }
     }
 
 
 
     fun loadMessagesFromFirestore(groupId: String) {
-        Log.d("ChatViewModel", "📥 Firestore'dan mesajları çekiyoruz...")
+        Log.d("ChatViewModel", " Firestore'dan mesajları çekiyoruz...")
 
         firestore.collection("messages")
             .whereEqualTo("groupId", groupId)
@@ -212,10 +225,10 @@ class ChatViewModel @Inject constructor(
                     saveMessagesToLocal(messages)
                 }
 
-                Log.d("ChatViewModel", "✅ Firestore'dan ${messages.size} yeni mesaj yüklendi.")
+                Log.d("ChatViewModel", "Firestore'dan ${messages.size} yeni mesaj yüklendi.")
             }
             .addOnFailureListener { e ->
-                Log.e("ChatViewModel", "❌ Firestore mesajlarını yüklerken hata: ${e.message}")
+                Log.e("ChatViewModel", " Firestore mesajlarını yüklerken hata: ${e.message}")
             }
     }
 
@@ -223,13 +236,13 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val localMessages = messageDao.getMessages(groupId)
 
-            Log.d("ChatViewModel", "📥 Room’dan çekilen mesajlar: ${localMessages.size} adet")
-            localMessages.forEach { Log.d("ChatViewModel", "🔥 Room Mesajı: ${it.message}") }
+            Log.d("ChatViewModel", " Room’dan çekilen mesajlar: ${localMessages.size} adet")
+            localMessages.forEach { Log.d("ChatViewModel", " Room Mesajı: ${it.message}") }
 
             messagesList.addAll(localMessages)
             _messagesLiveData.postValue(ArrayList(messagesList))
 
-            Log.d("ChatViewModel", "✅ Room’dan mesajlar UI’a yansıtıldı.")
+            Log.d("ChatViewModel", " Room’dan mesajlar UI’a yansıtıldı.")
         }
     }
 
@@ -278,13 +291,13 @@ class ChatViewModel @Inject constructor(
             .addOnSuccessListener { userDoc ->
                 val activeGroupId = userDoc.getString("activeGroupId")
 
-                // 2. Eğer kullanıcı zaten bu gruptaysa, bildirim gönderme
+
                 if (activeGroupId == message.groupId) {
                     Log.d("ChatViewModel", "📵 Bildirim gönderilmedi. Kullanıcı şu an bu grupta: $activeGroupId")
                     return@addOnSuccessListener
                 }
 
-                // 3. Grup adı alınarak bildirim gönderiliyor
+
                 firestore.collection("groups").document(message.groupId)
                     .get()
                     .addOnSuccessListener { groupDoc ->
