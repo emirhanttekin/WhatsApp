@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp"
+    android:layout_marginHorizontal="12dp"
+    app:cardBackgroundColor="@color/semi_transparent_gray"
+    app:cardCornerRadius="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/semi_transparent_gray"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:clipToOutline="true">
+
+        <!-- Sol içerik -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="1">
+
+            <!-- Mesaj -->
+            <TextView
+                android:id="@+id/tvMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mesaj içeriği"
+                android:textColor="@android:color/white"
+                android:fontFamily="@font/myfont"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Görsel -->
+            <ImageView
+                android:id="@+id/imgTaskImage"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="6dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <!-- Dosya -->
+            <LinearLayout
+                android:id="@+id/fileLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="6dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_file"
+                    />
+
+                <TextView
+                    android:id="@+id/tvFileName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dosya"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="6dp"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Sesli Mesaj -->
+            <LinearLayout
+                android:id="@+id/voiceMessageLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="6dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/btnPlayPause"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_play"
+                    android:tint="@android:color/white"
+                    android:contentDescription="Oynat/Duraklat" />
+
+                <com.masoudss.lib.WaveformSeekBar
+                    android:id="@+id/waveform"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+           />
+
+                <TextView
+                    android:id="@+id/tvDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+            <!-- Görev Atayan Bilgisi -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👤 Görevi Atayan"
+                android:textColor="#AAAAAA"
+                android:textSize="13sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Görev Atayan Bilgisi -->
+            <LinearLayout
+                android:id="@+id/assignerInfoLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="2dp">
+
+                <ImageView
+                    android:id="@+id/imgAssignerProfile"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_profile_placeholder"
+                    android:layout_marginEnd="6dp"
+                    android:contentDescription="Profil Fotoğrafı" />
+
+                <TextView
+                    android:id="@+id/tvAssignerName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Görevi Atayan"
+                    android:textColor="#CCCCCC"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+
+            <!-- Atanan Kişiler Başlığı -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👥 Atanan Kişiler:"
+                android:textColor="#AAAAAA"
+                android:textSize="13sp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Atanan Kişiler Yatay Liste -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/assignedUsersContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!-- Dinamik olarak eklenecek kullanıcılar buraya gelecek -->
+                </LinearLayout>
+            </HorizontalScrollView>
+
+
+
+            <!-- Tarih -->
+            <TextView
+                android:id="@+id/tvDeadline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Teslim tarihi"
+                android:fontFamily="@font/myfont"
+                android:textColor="#AAAAAA"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp"/>
+
+            <!-- Geri Sayım -->
+            <TextView
+                android:id="@+id/tvCountdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kalan süre: 00:00:00"
+                android:textColor="#FFCC00"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp"/>
+        </LinearLayout>
+
+        <!-- Alarm butonu -->
+        <ImageButton
+            android:id="@+id/btnReminder"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_alarm"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Hatırlatıcı Kur"
+            />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

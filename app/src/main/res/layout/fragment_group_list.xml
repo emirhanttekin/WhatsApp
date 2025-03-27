@@ -52,6 +52,14 @@
             android:contentDescription="Profil"
             android:src="@drawable/ic_profile" />
 
+        <ImageButton
+            android:id="@+id/btnTask"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Profil"
+            android:src="@drawable/ic_task" />
+
         <!-- Çıkış Butonu -->
         <ImageButton
             android:id="@+id/btnLogout"

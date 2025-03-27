@@ -12,7 +12,7 @@ import com.firebase.ui.auth.BuildConfig
 
 @Database(
     entities = [Message::class],
-    version = 3,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(TimestampConverter::class)

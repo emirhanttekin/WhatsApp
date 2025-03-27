@@ -21,7 +21,9 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.whatsapp.R
+import com.example.whatsapp.data.model.Message
 import com.example.whatsapp.databinding.FragmentChatBinding
+import com.example.whatsapp.ui.assigntask.AssignTaskBottomSheet
 import com.example.whatsapp.ui.chat.adapter.ChatAdapter
 import com.example.whatsapp.ui.chat.viewmodel.ChatViewModel
 import com.example.whatsapp.utils.voice.VoiceRecorderManager
@@ -384,6 +386,34 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                 stackFromEnd = true
             }
         }
+
+        chatAdapter.onMessageLongClick = { message ->
+            showMessageOptionsDialog(message)
+        }
+    }
+
+    private fun showMessageOptionsDialog(message: Message) {
+        val options = arrayOf("📌 Mesajı Sabitle", "📅 Görev Ata", "❌ İptal")
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Mesaj Seçenekleri")
+            .setItems(options) { dialog, which ->
+                when (which) {
+                    0 -> {
+                        Toast.makeText(requireContext(), "📌 Sabitleme yakında gelecek!", Toast.LENGTH_SHORT).show()
+                    }
+                    1 -> {
+                        openAssignTaskBottomSheet(message, args.groupId) // ✅ groupId ekledik
+                    }
+                    else -> dialog.dismiss()
+                }
+            }
+            .show()
+    }
+
+    private fun openAssignTaskBottomSheet(message: Message, groupId: String) {
+        val bottomSheet = AssignTaskBottomSheet(message, groupId) // ✅ parametreyle gönderiyoruz
+        bottomSheet.show(childFragmentManager, "AssignTaskBottomSheet")
     }
 
     private fun sendMessage(

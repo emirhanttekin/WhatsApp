@@ -58,6 +58,10 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
             }
         }
 
+        binding.btnTask.setOnClickListener {
+            findNavController().navigate(R.id.action_groupListFragment_to_assignTaskFragment)
+        }
+
 
         binding.btnProfile.setOnClickListener {
             findNavController().navigate(R.id.action_groupListFragment_to_profileFragment)

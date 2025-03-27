@@ -1,0 +1,127 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- Başlık -->
+    <TextView
+        android:text="📩 Mesaj İçeriği"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- Görsel gösterimi -->
+    <ImageView
+        android:id="@+id/imgMessagePreview"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_marginTop="8dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <!-- Sesli mesaj gösterimi -->
+    <LinearLayout
+        android:id="@+id/audioLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:layout_marginTop="8dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_mic"
+            android:tint="@android:color/black" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sesli mesaj"
+            android:textSize="14sp"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+    <!-- Dosya gösterimi -->
+    <LinearLayout
+        android:id="@+id/fileLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:layout_marginTop="8dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_file"
+            android:tint="@android:color/black" />
+
+        <TextView
+            android:id="@+id/tvFileName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="dosya.pdf"
+            android:textSize="14sp"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+    <!-- Metin mesaj gösterimi -->
+    <EditText
+        android:id="@+id/etMessageContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:enabled="false"
+        android:background="@null"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Kullanıcı seçim başlığı -->
+    <TextView
+        android:text="👤 Kime Atanacak?"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Kullanıcı listesi -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvAssignees"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:orientation="horizontal"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Tarih seçimi -->
+    <TextView
+        android:text="📅 Tarih ve Saat"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tvSelectedDateTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Henüz seçilmedi"
+        android:textColor="@android:color/holo_blue_dark"
+        android:paddingVertical="8dp" />
+
+    <Button
+        android:id="@+id/btnSelectDateTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tarih ve Saat Seç" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="✅ Görevi Kaydet"
+        android:layout_marginTop="16dp" />
+</LinearLayout>

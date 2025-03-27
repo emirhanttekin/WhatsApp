@@ -115,7 +115,10 @@
             app:destination="@id/loginFragment" />
         <action
             android:id="@+id/action_groupListFragment_to_profileFragment"
-            app:destination="@id/profileFragment" /> <!-- Varsayılan değer ekleyerek hata önlenir -->
+            app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_groupListFragment_to_assignTaskFragment"
+            app:destination="@id/assignTaskFragment" /> <!-- Varsayılan değer ekleyerek hata önlenir -->
     </fragment>
     <fragment
         android:id="@+id/chatFragment"
@@ -197,6 +200,11 @@
             android:id="@+id/action_profileFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/assignTaskFragment"
+        android:name="com.example.whatsapp.ui.assigntask.AssignTaskFragment"
+        android:label="fragment_assign_task"
+        tools:layout="@layout/fragment_assign_task" />
 
 
 </navigation>

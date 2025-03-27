@@ -31,6 +31,8 @@
 
         private val auth = FirebaseAuth.getInstance()
 
+        var onMessageLongClick: ((Message) -> Unit)? = null
+
         companion object {
             private const val SENT_MESSAGE = 1
             private const val RECEIVED_MESSAGE = 2
@@ -63,14 +65,22 @@
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val message = getItem(position)
-            Log.d("ChatAdapter", "\uD83D\uDCCC Güncellenen Mesaj: ${message.message}")
 
             if (holder is SentMessageViewHolder) {
                 holder.bind(message)
+                holder.itemView.setOnLongClickListener {
+                    onMessageLongClick?.invoke(message)
+                    true
+                }
             } else if (holder is ReceivedMessageViewHolder) {
                 holder.bind(message)
+                holder.itemView.setOnLongClickListener {
+                    onMessageLongClick?.invoke(message)
+                    true
+                }
             }
         }
+
 
         class SentMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val binding = ItemMessageSentBinding.bind(itemView)
