@@ -155,7 +155,7 @@ class ChatViewModel @Inject constructor(
 
         SocketManager.setOnMessageReceivedListener { groupId, senderId, text, senderProfileImageUrl, imageUrl, audioUrl, fileUrl, timestamp, senderName ->
 
-        val messageId = "${groupId}_${timestamp.seconds}"
+            val messageId = "${groupId}_${timestamp.seconds}"
 
             if (messagesList.any { it.id == messageId }) {
                 Log.w("ChatViewModel", "⚠ Mesaj zaten var, tekrar eklenmeyecek!")

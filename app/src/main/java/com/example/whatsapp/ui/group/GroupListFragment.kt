@@ -1,9 +1,12 @@
 package com.example.whatsapp.ui.group
 
+import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -13,7 +16,9 @@ import com.example.whatsapp.databinding.FragmentGroupListBinding
 import com.example.whatsapp.ui.group.adapter.GroupAdapter
 import com.example.whatsapp.ui.group.viewmodel.GroupListViewModel
 import com.example.whatsapp.utils.Resource
+import com.example.whatsapp.utils.helper.PermissionHelper
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -33,7 +38,7 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
         setupRecyclerView()
         viewModel.loadGroups()
         viewModel.checkForPendingInvites()
-
+        checkForGroupInvitations()
         binding.etSearchGroup.addTextChangedListener { text ->
             val query = text.toString().trim()
             viewModel.filterGroups(query)
@@ -76,6 +81,15 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
             findNavController().navigate(R.id.action_groupListFragment_to_createGroupFragment)
         }
     }
+    private val microphonePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Toast.makeText(requireContext(), "Mikrofon izni verildi 🎉", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Mikrofon izni reddedildi ❌", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     private fun setupRecyclerView() {
         groupListAdapter = GroupAdapter(mutableListOf()) { group ->
@@ -92,6 +106,63 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
         binding.rvGroups.apply {
             adapter = groupListAdapter
             setHasFixedSize(true)
+        }
+    }
+    private fun checkForGroupInvitations() {
+        val user = auth.currentUser ?: return
+        val userEmail = user.email ?: return
+
+        firestore.collection("groupInvitations")
+            .document(userEmail)
+            .get()
+            .addOnSuccessListener { inviteDocument ->
+                if (inviteDocument.exists()) {
+                    val groupId = inviteDocument.getString("groupId") ?: return@addOnSuccessListener
+                    val groupName = inviteDocument.getString("groupName") ?: "Bilinmeyen Grup"
+
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("Grup Daveti")
+                        .setMessage("$groupName adlı gruba katılmak istiyor musunuz?")
+                        .setPositiveButton("Kabul Et") { _, _ ->
+                            acceptInvitation(user.uid, userEmail, groupId)
+                        }
+                        .setNegativeButton("Reddet") { _, _ ->
+                            declineInvitation(userEmail)
+                        }
+                        .show()
+                }
+            }
+    }
+
+
+    private fun acceptInvitation(userId: String, userEmail: String, groupId: String) {
+        firestore.collection("groups").document(groupId)
+            .update("members", FieldValue.arrayUnion(userId))
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Gruba başarıyla katıldınız!", Toast.LENGTH_SHORT).show()
+                deleteInvitation(userEmail)
+                viewModel.loadGroups() // Listeyi güncelle
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Gruba katılırken hata oluştu!", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun declineInvitation(userEmail: String) {
+        deleteInvitation(userEmail)
+        Toast.makeText(requireContext(), "Davet reddedildi", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun deleteInvitation(userEmail: String) {
+        firestore.collection("groupInvitations").document(userEmail)
+            .delete()
+            .addOnSuccessListener {
+                // Davet silindi
+            }
+    }
+    private fun checkMicrophonePermission() {
+        if (!PermissionHelper.isPermissionGranted(requireContext(), Manifest.permission.RECORD_AUDIO)) {
+            microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
 

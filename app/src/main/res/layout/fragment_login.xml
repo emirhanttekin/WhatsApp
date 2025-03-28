@@ -17,7 +17,7 @@
         android:id="@+id/imgLogo"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/whatsapp_svgrepo_com"
+        android:src="@drawable/chatnblend"
         android:contentDescription="WhatsApp Logo"
         android:layout_gravity="center"
         android:layout_marginBottom="24dp"/>

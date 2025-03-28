@@ -1,5 +1,6 @@
 package com.example.whatsapp.ui.chat
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -26,11 +27,20 @@ import com.example.whatsapp.databinding.FragmentChatBinding
 import com.example.whatsapp.ui.assigntask.AssignTaskBottomSheet
 import com.example.whatsapp.ui.chat.adapter.ChatAdapter
 import com.example.whatsapp.ui.chat.viewmodel.ChatViewModel
+import com.example.whatsapp.utils.helper.ImageLoader
+import com.example.whatsapp.utils.helper.MessageOptionHelper
+import com.example.whatsapp.utils.helper.PermissionHelper
+import com.example.whatsapp.utils.sender.MessageSender
+import com.example.whatsapp.utils.upload.UploadManager
 import com.example.whatsapp.utils.voice.VoiceRecorderManager
+import com.example.whatsapp.utils.voice.VoiceRecordingController
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.vanniktech.emoji.EmojiPopup
+
+
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -42,11 +52,9 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private lateinit var binding: FragmentChatBinding
     private val viewModel: ChatViewModel by viewModels()
     private val args: ChatFragmentArgs by navArgs()
-    private var isChatScreenVisible: Boolean = false
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     private lateinit var voiceRecorderManager: VoiceRecorderManager
-    private var isRecording = false
-    private var recordingStartX = 0f
+    private lateinit var voiceController: VoiceRecordingController
 
 
     @Inject
@@ -64,13 +72,24 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentChatBinding.bind(view)
-
+        setupEmojiPopup()
         val groupId = args.groupId
         val groupName = args.groupName
         voiceRecorderManager = VoiceRecorderManager(requireContext())
+        voiceController = VoiceRecordingController(
+            context = requireContext(),
+            voiceRecorderManager = voiceRecorderManager,
+            recorderLayout = binding.voiceRecorderLayout,
+            timerView = binding.tvRecordingTimer,
+            onRecordingFinished = { audioPath ->
+                uploadAudioToFirebase(audioPath)
+            }
+        )
+
 
         setupVoiceRecording()
-        setupEmojiPopup()
+
+
         setupSendButtonVisibility()
 
         Log.d("ChatFragment", "✅ ChatFragment → Group ID: $groupId")
@@ -127,32 +146,28 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
 
     }
+
+
     private fun openDocumentPicker() {
-        documentPickerLauncher.launch("*/*") // tüm dosya türlerini destekler
+        documentPickerLauncher.launch("*/*")
     }
 
 
-    private fun setupEmojiPopup() {
-        val emojiPopup = EmojiPopup(
-            rootView = binding.root,
-            editText = binding.etMessage
-        )
 
-        // Emoji toggle
+
+    private fun setupEmojiPopup() {
+        val emojiPopup = EmojiPopup(binding.root, binding.etMessage)
+
         binding.btnEmoji.setOnClickListener {
             emojiPopup.toggle()
         }
     }
 
-    private val micPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            startVoiceRecording()
-        } else {
-            Toast.makeText(requireContext(), "Mikrofon izni reddedildi!", Toast.LENGTH_SHORT).show()
-        }
-    }
+
+
+
+
+
 
     private fun showImagePickerDialog() {
         val options = arrayOf("📷 Fotoğraf Çek", "🖼️ Galeriden Seç", "❌ İptal")
@@ -168,78 +183,48 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             .show()
     }
     private fun uploadDocumentToFirebase(fileUri: Uri) {
-        val fileName = System.currentTimeMillis().toString()
-        val fileRef = FirebaseStorage.getInstance().reference
-            .child("chat_files/$fileName")
-
-        fileRef.putFile(fileUri)
-            .addOnSuccessListener {
-                fileRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                    sendMessage(args.groupId, fileUrl = downloadUrl.toString())
-                    Toast.makeText(requireContext(), "📁 Belge gönderildi", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .addOnFailureListener {
+        UploadManager.uploadDocument(
+            context = requireContext(),
+            fileUri = fileUri,
+            onSuccess = { fileUrl ->
+                MessageSender.sendFileMessage(viewModel, args.groupId, fileUrl)
+                Toast.makeText(requireContext(), "📁 Belge gönderildi", Toast.LENGTH_SHORT).show()
+            },
+            onFailure = {
                 Toast.makeText(requireContext(), "❌ Belge yüklenemedi", Toast.LENGTH_SHORT).show()
             }
+        )
+    }
+    private val micPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // İzin verildiyse, kayıt başlat
+            voiceController.startRecordingManually()
+        } else {
+            Toast.makeText(requireContext(), "Mikrofon izni reddedildi", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupVoiceRecording() {
-        val micButton = binding.btnMic
-
-        micButton.setOnTouchListener { view, motionEvent ->
-            when (motionEvent.action) {
+        binding.btnMic.setOnTouchListener { _, event ->
+            when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    recordingStartX = motionEvent.x
-                    startVoiceRecording()
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val diffX = motionEvent.x - recordingStartX
-                    if (diffX < -200) { // sola kaydırma
-                        cancelVoiceRecording()
+                    if (PermissionHelper.isPermissionGranted(requireContext(), Manifest.permission.RECORD_AUDIO)) {
+                        voiceController.startRecordingManually()
+                    } else {
+                        micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                     }
                     true
                 }
+
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    if (isRecording) {
-                        stopVoiceRecording()
-                    }
+                    voiceController.stopRecordingManually()
                     true
                 }
+
                 else -> false
             }
-        }
-    }
-
-    private fun startVoiceRecording() {
-        if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
-            micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
-            return
-        }
-
-        val audioPath = voiceRecorderManager.startRecording()
-        if (audioPath != null) {
-            isRecording = true
-            binding.voiceRecorderLayout.visibility = View.VISIBLE
-            binding.tvRecordingTimer.base = SystemClock.elapsedRealtime()
-            binding.tvRecordingTimer.start()
-            Log.d("ChatFragment", "🎙️ Ses kaydı başladı...")
-        } else {
-            Toast.makeText(requireContext(), "Kayıt başlatılamadı!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-
-    private fun stopVoiceRecording() {
-        val audioPath = voiceRecorderManager.stopRecording()
-        isRecording = false
-        binding.voiceRecorderLayout.visibility = View.GONE
-        binding.tvRecordingTimer.stop()
-
-        audioPath?.let {
-            uploadAudioToFirebase(it)
         }
     }
 
@@ -248,59 +233,45 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             val text = it?.toString()?.trim()
 
             if (text.isNullOrEmpty()) {
-                // Yazı yoksa: Mikrofonu göster
+
                 binding.btnMic.setImageResource(R.drawable.ic_mic)
                 binding.btnMic.contentDescription = "Sesli Mesaj"
 
-                // Touch listener'ı tekrar ekle (basılı tutarak kayıt için)
                 setupVoiceRecording()
 
             } else {
-                // Yazı varsa: Gönder ikonunu göster
+
                 binding.btnMic.setImageResource(R.drawable.ic_send)
                 binding.btnMic.contentDescription = "Mesaj Gönder"
 
-                // Ses kaydı için olan touch listener'ı devre dışı bırak
                 binding.btnMic.setOnTouchListener(null)
 
-                // Bu durumda normal tıklamayla mesaj gönder
+
                 binding.btnMic.setOnClickListener {
-                    val messageText = binding.etMessage.text.toString().trim()
-                    if (messageText.isNotEmpty()) {
-                        sendMessage(args.groupId, messageText)
+                    val message = binding.etMessage.text.toString().trim()
+                    if (message.isNotEmpty()) {
+                        MessageSender.sendTextMessage(viewModel, args.groupId, message)
+                        binding.etMessage.text?.clear()
+                        setupVoiceRecording()
                     }
                 }
             }
         }
     }
 
-
     private fun uploadAudioToFirebase(filePath: String) {
-        val audioFile = File(filePath)
-        val uri = Uri.fromFile(audioFile)
-        val storageRef = FirebaseStorage.getInstance().reference
-            .child("chat_audios/${System.currentTimeMillis()}.m4a")
-
-        storageRef.putFile(uri)
-            .addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                    sendMessage(args.groupId, audioUrl = downloadUrl.toString())
-                }
+        val audioUri = Uri.fromFile(File(filePath))
+        UploadManager.uploadAudio(
+            context = requireContext(),
+            fileUri = audioUri,
+            onSuccess = { audioUrl ->
+                MessageSender.sendAudioMessage(viewModel, args.groupId, audioUrl)
+            },
+            onFailure = {
+                Toast.makeText(requireContext(), "❌ Ses yüklenemedi", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Ses kaydı yüklenemedi!", Toast.LENGTH_SHORT).show()
-            }
+        )
     }
-
-
-    private fun cancelVoiceRecording() {
-        voiceRecorderManager.cancelRecording()
-        isRecording = false
-        binding.voiceRecorderLayout.visibility = View.GONE
-        binding.tvRecordingTimer.stop()
-        Toast.makeText(requireContext(), "Kayıt iptal edildi", Toast.LENGTH_SHORT).show()
-    }
-
 
     private fun loadGroupProfileImage(groupId: String) {
         val groupRef = FirebaseFirestore.getInstance().collection("groups").document(groupId)
@@ -308,14 +279,12 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         groupRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
                 val imageUrl = document.getString("imageUrl")
-
-                if (!imageUrl.isNullOrEmpty()) {
-                    Glide.with(this)
-                        .load(imageUrl)
-                        .circleCrop()
-                        .placeholder(R.drawable.ic_group_placeholder)
-                        .into(binding.imgGroupProfile)
-                }
+                ImageLoader.loadCircleImage(
+                    context = requireContext(),
+                    url = imageUrl,
+                    imageView = binding.imgGroupProfile,
+                    placeholder = R.drawable.ic_group_placeholder
+                )
             }
         }.addOnFailureListener {
             Log.e("ChatFragment", "Grup resmi alınamadı: ${it.message}")
@@ -351,19 +320,14 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     }
 
     private fun uploadImageToFirebase(imageUri: Uri) {
-        val storageRef =
-            FirebaseStorage.getInstance().reference.child("chat_images/${System.currentTimeMillis()}.jpg")
-
-        storageRef.putFile(imageUri)
-            .addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                    val groupId = args.groupId
-                    sendMessage(groupId, imageUrl = downloadUrl.toString())
-                }
-            }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Fotoğraf yüklenemedi!", Toast.LENGTH_SHORT).show()
-            }
+        UploadManager.uploadImage(
+            context = requireContext(),
+            imageUri = imageUri,
+            onSuccess = { imageUrl ->
+                MessageSender.sendImageMessage(viewModel, args.groupId, imageUrl)
+            },
+            onFailure = {}
+        )
     }
 
 
@@ -388,62 +352,9 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
 
         chatAdapter.onMessageLongClick = { message ->
-            showMessageOptionsDialog(message)
-        }
-    }
-
-    private fun showMessageOptionsDialog(message: Message) {
-        val options = arrayOf("📌 Mesajı Sabitle", "📅 Görev Ata", "❌ İptal")
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Mesaj Seçenekleri")
-            .setItems(options) { dialog, which ->
-                when (which) {
-                    0 -> {
-                        Toast.makeText(requireContext(), "📌 Sabitleme yakında gelecek!", Toast.LENGTH_SHORT).show()
-                    }
-                    1 -> {
-                        openAssignTaskBottomSheet(message, args.groupId) // ✅ groupId ekledik
-                    }
-                    else -> dialog.dismiss()
-                }
-            }
-            .show()
-    }
-
-    private fun openAssignTaskBottomSheet(message: Message, groupId: String) {
-        val bottomSheet = AssignTaskBottomSheet(message, groupId) // ✅ parametreyle gönderiyoruz
-        bottomSheet.show(childFragmentManager, "AssignTaskBottomSheet")
-    }
-
-    private fun sendMessage(
-        groupId: String,
-        messageText: String? = null,
-        imageUrl: String? = null,
-        audioUrl :String? = null,
-        fileUrl: String? = null
-
-        ) {
-        if (messageText.isNullOrEmpty() && imageUrl.isNullOrEmpty() && audioUrl.isNullOrEmpty() && fileUrl.isNullOrEmpty()) {
-            Log.e("ChatFragment", "Gönderilecek mesaj yok!")
-            return
+            MessageOptionHelper.showOptions(requireContext(), message, args.groupId, childFragmentManager)
         }
 
-
-
-        auth.currentUser?.uid?.let { userId ->
-            viewModel.sendMessage(
-                groupId = groupId,
-                messageText = messageText,
-                imageUrl = imageUrl,
-                audioUrl = audioUrl,
-                fileUrl = fileUrl, // ✅ eklendi
-                senderId = userId
-            )
-
-        }
-
-        binding.etMessage.text?.clear()
     }
 
 
@@ -524,25 +435,5 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     }
 
 
-    private fun markUserOnlineInFirestore() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-        FirebaseFirestore.getInstance().collection("groups")
-            .whereArrayContains("members", userId)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                snapshot.documents.forEach { doc ->
-                    val groupId = doc.id
-                    val onlineRef = FirebaseFirestore.getInstance()
-                        .collection("groups")
-                        .document(groupId)
-                        .collection("onlineUsers")
-                        .document(userId)
-
-
-                    onlineRef.set(mapOf("status" to true))
-                }
-            }
-    }
 
 }

@@ -62,7 +62,7 @@ class AssignTaskBottomSheet(
                 return@setOnClickListener
             }
 
-            saveTaskToFirestore(selectedAssigneeIds) // ✅ Burası list olacak
+            saveTaskToFirestore(selectedAssigneeIds)
         }
 
 
@@ -99,7 +99,7 @@ class AssignTaskBottomSheet(
     private fun setupRecyclerView() {
         assignAdapter = AssigneeAdapter(
             onUserClick = { user ->
-                // Seçimler buradan yapılabilir
+
             }
         )
 
@@ -158,7 +158,7 @@ class AssignTaskBottomSheet(
                 val assignerName = assignerSnapshot.getString("name") ?: "Bilinmiyor"
                 val assignerProfileUrl = assignerSnapshot.getString("profileImageUrl")
 
-                // 🔁 Tüm kullanıcıları tek sorguda getir
+
                 firestore.collection("users")
                     .whereIn(FieldPath.documentId(), assigneeIds)
                     .get()

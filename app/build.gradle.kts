@@ -88,8 +88,8 @@ dependencies {
     // ✅ Socket.IO (Gerçek Zamanlı Bağlantı)
     implementation(libs.socket.socket.io.client)
     implementation("com.vanniktech:emoji:0.15.0")
-    implementation ("com.vanniktech:emoji-google:0.15.0")
-
+    implementation ("com.vanniktech:emoji-google:0.16.0")
+    implementation("com.vanniktech:emoji-google:0.21.0")
     // ✅ Testler
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit.v115)

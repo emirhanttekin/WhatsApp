@@ -77,7 +77,7 @@
         android:layout_margin="16dp"
         app:backgroundTint="?attr/colorPrimary"
         app:rippleColor="?attr/colorOnPrimary"
-        app:srcCompat="@drawable/ic_logout"
+        app:srcCompat="@drawable/ic_add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
